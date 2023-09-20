@@ -3,13 +3,16 @@ import * as bcrypt from 'bcrypt';
 import { Conversation } from "src/conversation/entities/conversation.entity";
 
 @Entity()
-@Unique(['username'])
+@Unique(['email'])
 export class User extends BaseEntity{
    @PrimaryGeneratedColumn()
    id: number;
 
    @Column()
    username: string;
+
+   @Column()
+   email: string;
 
    @Column()
    password: string;
