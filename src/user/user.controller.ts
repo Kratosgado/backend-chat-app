@@ -10,12 +10,12 @@ export class UserController {
 
   @Post()
   signUp(@Body() signUpDto: SignUpUserDto) {
-    return this.userService.create(signUpDto);
+    return this.userService.signUp(signUpDto);
   }
 
   @Post()
   signIn(@Body(ValidationPipe) signInDto: SignInUserDto): Promise<{accessToken: string}> {
-    return this.userService.create(signInDto);
+    return this.userService.signIn(signInDto);
   }
 
   @Get()
