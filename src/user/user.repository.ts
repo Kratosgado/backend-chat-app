@@ -3,6 +3,7 @@ import { DataSource, Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 
 import * as bcrypt from 'bcrypt';
+import { v4 as uuid } from "uuid";
 import { SignInUserDto } from "./dto/signin-user.dto";
 import { SignUpUserDto } from "./dto/signup-user.dto";
 
@@ -22,6 +23,7 @@ export class UserRepository extends Repository<User> {
       // create a new user
       this.logger.log("creating a new user");
       const newUser = new User();
+      newUser.id = uuid();
       newUser.salt = await bcrypt.genSalt();
       newUser.username = username;
       newUser.email = email;

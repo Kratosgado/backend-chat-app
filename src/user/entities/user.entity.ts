@@ -1,12 +1,12 @@
-import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { Conversation } from "src/conversation/entities/conversation.entity";
 
 @Entity()
 @Unique(['email'])
 export class User extends BaseEntity{
-   @PrimaryGeneratedColumn()
-   id: number;
+   @PrimaryColumn()
+   id: string;
 
    @Column()
    username: string;

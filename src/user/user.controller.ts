@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SignUpUserDto } from './dto/signup-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +10,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/signup')
-  signUp(@Body() signUpDto: SignUpUserDto): Promise<User> {
+  signUp(@Body(ValidationPipe) signUpDto: SignUpUserDto): Promise<User> {
     return this.userService.signUp(signUpDto);
   }
 
