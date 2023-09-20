@@ -16,7 +16,7 @@ export class UserRepository extends Repository<User> {
       super(User, datasource.createEntityManager());
    }
 
-   async signUp(signUpDto: SignUpUserDto): Promise<void> {
+   async signUp(signUpDto: SignUpUserDto): Promise<User> {
       const { username, email, password } = signUpDto;
       
       // create a new user
@@ -31,6 +31,9 @@ export class UserRepository extends Repository<User> {
       try {
          await newUser.save();
          this.logger.log(`user created with id: ${newUser.id}`)
+         delete newUser.password;
+         delete newUser.salt;
+         return newUser;
       } catch (error) {
          if (error.code === "23505") {
             this.logger.error('email already exist')

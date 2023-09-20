@@ -14,7 +14,7 @@ export class UserService {
     private jwtService: JwtService
   ) { }
   
-  signUp(signUpDto: SignUpUserDto) {
+  signUp(signUpDto: SignUpUserDto): Promise<User>{
     return this.userRepository.signUp(signUpDto);
   }
 
