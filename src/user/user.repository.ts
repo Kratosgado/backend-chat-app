@@ -23,7 +23,6 @@ export class UserRepository extends Repository<User> {
       // create a new user
       this.logger.log("creating a new user");
       const newUser = new User();
-      newUser.id = uuid();
       newUser.salt = await bcrypt.genSalt();
       newUser.username = username;
       newUser.email = email;
@@ -31,7 +30,7 @@ export class UserRepository extends Repository<User> {
       newUser.password = await this.hashPassword(password, newUser.salt);
 
       try {
-         await newUser.save();
+         await this.save(newUser);
          this.logger.log(`user created with id: ${newUser.id}`)
          delete newUser.password;
          delete newUser.salt;
@@ -47,8 +46,10 @@ export class UserRepository extends Repository<User> {
    }
 
    async validateUserPassword(signInDto: SignInUserDto): Promise<string> {
-      const { username, password } = signInDto;  
-      const user = await this.findOneBy({ username });
+      const { username, password } = signInDto;
+
+      this.logger.log(`finding user with username: ${username}`);
+      const user = await this.findOne({where: {username: username} });
 
       this.logger.log("validating password");
       if (user && await user.validatePassword(password)) {

@@ -9,7 +9,7 @@ import { Conversation } from './entities/conversation.entity';
 export class ConversationService {
   constructor(private conversationRepository: ConversationRepository) { }
   
-  create(createConversationDto: CreateConversationDto, currentUser: User) : Promise<Conversation>{
+  createConversation(createConversationDto: CreateConversationDto, currentUser: User) : Promise<Conversation>{
     return this.conversationRepository.createConversation(createConversationDto, currentUser);
   }
 

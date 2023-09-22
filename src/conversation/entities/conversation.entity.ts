@@ -10,7 +10,7 @@ export class Conversation {
    @Column()
    convoName: string;
 
-   @ManyToMany(type => User, user => user.conversations, {eager: false})
+   @ManyToMany(type => User, user => user.conversations)
    users: User[];
 
    @OneToMany(type => Message, message => message.conversation, {eager: true})

@@ -1,11 +1,11 @@
-import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { BaseEntity, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { Conversation } from "src/conversation/entities/conversation.entity";
 
 @Entity()
 @Unique(['email'])
 export class User extends BaseEntity{
-   @PrimaryColumn()
+   @PrimaryGeneratedColumn("uuid")
    id: string;
 
    @Column()
@@ -26,8 +26,9 @@ export class User extends BaseEntity{
    @Column()
    salt: string;
 
-   @ManyToMany(type => Conversation, conversation => conversation.users, {eager: true})
-   conversations: Conversation
+   @ManyToMany(type => Conversation, conversation => conversation.users)
+   @JoinTable()
+   conversations: Conversation[]
 
    // @OneToMany(type => Task, task => task.user, {eager: true})
    // tasks: Task[];

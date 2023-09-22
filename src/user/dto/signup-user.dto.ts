@@ -7,7 +7,7 @@ export class SignUpUserDto {
    username: string;
 
    @IsString()
-   @Matches(/\W+@gmail.com/, {message: "enter a valid gmail"})
+   @Matches(/\W*@gmail.com/, {message: "enter a valid gmail"})
    email: string;
 
    @IsString()

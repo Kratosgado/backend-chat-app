@@ -14,14 +14,14 @@ export class UserController {
     return this.userService.signUp(signUpDto);
   }
 
-  @Post('signin')
+  @Post('/signin')
   signIn(@Body(ValidationPipe) signInDto: SignInUserDto): Promise<{accessToken: string}> {
     return this.userService.signIn(signInDto);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(): Promise<User[]> {
+    return this.userService.getUsers();
   }
 
   @Get(':id')

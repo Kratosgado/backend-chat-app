@@ -14,11 +14,11 @@ export class ConversationController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  create(
+  createConversation(
     @Body() createConversationDto: CreateConversationDto,
     @GetUser() currentUser: User,
   ): Promise<Conversation> {
-    return this.conversationService.create(createConversationDto, currentUser);
+    return this.conversationService.createConversation(createConversationDto, currentUser);
   }
 
   @Get()

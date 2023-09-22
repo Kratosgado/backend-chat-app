@@ -34,8 +34,8 @@ export class UserService {
     return this.userRepository.validateUserByUsername(username);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  getUsers(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
   findOne(id: number) {
