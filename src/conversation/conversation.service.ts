@@ -13,12 +13,12 @@ export class ConversationService {
     return this.conversationRepository.createConversation(createConversationDto, currentUser);
   }
 
-  findAll() {
-    return `This action returns all conversation`;
+  getConversations(user: User) : Promise<Conversation[]> {
+    return this.conversationRepository.getConversations(user);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
+  async findOne(id: string): Promise<Conversation> {
+    return await this.conversationRepository.findOneBy({id: id});
   }
 
   update(id: number, updateConversationDto: UpdateConversationDto) {

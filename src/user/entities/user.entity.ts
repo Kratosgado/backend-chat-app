@@ -5,7 +5,7 @@ import { Conversation } from "src/conversation/entities/conversation.entity";
 @Entity()
 @Unique(['email'])
 export class User extends BaseEntity{
-   @PrimaryGeneratedColumn("uuid")
+   @PrimaryColumn()
    id: string;
 
    @Column()

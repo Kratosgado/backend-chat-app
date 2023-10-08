@@ -9,6 +9,6 @@ export class CreateConversationDto {
    @IsOptional()
    convoName: string;
 
-   @IsUUID('4', {each: true})
-   userIds: string[];
+   @IsUUID('all')
+   userId: string;
 }

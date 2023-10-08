@@ -22,13 +22,13 @@ export class ConversationController {
   }
 
   @Get()
-  findAll() {
-    return this.conversationService.findAll();
+  getConversations(@GetUser() currentUser: User) {
+    return this.conversationService.getConversations(currentUser);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.conversationService.findOne(+id);
+  findOne(@Param('id') id: string): Promise<Conversation> {
+    return this.conversationService.findOne(id);
   }
 
   @Patch(':id')

@@ -23,6 +23,7 @@ export class UserRepository extends Repository<User> {
       // create a new user
       this.logger.log("creating a new user");
       const newUser = new User();
+      newUser.id = uuid();
       newUser.salt = await bcrypt.genSalt();
       newUser.username = username;
       newUser.email = email;
@@ -59,7 +60,6 @@ export class UserRepository extends Repository<User> {
          this.logger.warn("couldn't validate password");
          return null;
       }
-
    }
 
    async validateUserByUsername(username: string): Promise<User | null> {

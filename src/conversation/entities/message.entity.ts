@@ -3,7 +3,7 @@ import { Conversation } from "./conversation.entity";
 
 @Entity()
 export class Message {
-   @PrimaryGeneratedColumn()
+   @PrimaryColumn()
    id: string;
 
    @ManyToOne(type => Conversation, conversation => conversation.messages, { eager : false})

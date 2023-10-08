@@ -27,15 +27,22 @@ export class UserService {
     const payload: JwtPayload = { username}
     const accessToken = this.jwtService.sign(payload);
 
-    return {accessToken}
+    return { accessToken };
   }
 
   validateUserByUsername(username: string): Promise<User | null> {
     return this.userRepository.validateUserByUsername(username);
   }
 
-  getUsers(): Promise<User[]> {
-    return this.userRepository.find();
+  async getUsers(): Promise<User[]> {
+    // retrieve all users without their password and salt
+    const users = (await this.userRepository.find()).flatMap((user) => {
+      delete user.password;
+      delete user.salt;
+      return user
+    })
+    
+    return users;
   }
 
   findOne(id: number) {
