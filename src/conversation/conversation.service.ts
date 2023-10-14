@@ -18,7 +18,16 @@ export class ConversationService {
   }
 
   async findOne(id: string): Promise<Conversation> {
-    return await this.conversationRepository.findOneBy({id: id});
+    return await this.conversationRepository.findOne({
+      select: {
+        users: {
+          id: true,
+          username: true,
+          email: true,
+        }
+      },
+      where: { id: id },
+    } );
   }
 
   update(id: number, updateConversationDto: UpdateConversationDto) {

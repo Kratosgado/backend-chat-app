@@ -27,7 +27,6 @@ export class User extends BaseEntity{
    salt: string;
 
    @ManyToMany(type => Conversation, conversation => conversation.users)
-   @JoinTable()
    conversations: Conversation[]
 
    // @OneToMany(type => Task, task => task.user, {eager: true})

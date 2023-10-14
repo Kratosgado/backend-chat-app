@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
-import { DataSource, Repository } from "typeorm";
+import { ArrayContains, DataSource, Repository } from "typeorm";
 import { Conversation } from "./entities/conversation.entity";
 import { CreateConversationDto } from "./dto/create-conversation.dto";
 import { User } from "src/user/entities/user.entity";
@@ -54,6 +54,19 @@ export class ConversationRepository extends Repository<Conversation> {
    }
 
    async getConversations(currentUser: User): Promise<Conversation[]>{
-      return this.find();
+      return this.find({
+         select: {
+            users: {
+               id: true,
+               username: true,
+               email: true,
+            },
+         },
+         where: {
+            users: {
+               id: currentUser.id
+            }
+         }
+      });
    }
 }
