@@ -10,9 +10,9 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.enableCors()
-  const prismaService: any = app.get(PrismaService);
+  app.get(PrismaService);
   // await prismaService.enableShutdownHooks(app);
-  
+  await app.listen(3000);
   
   logger.log(`Application listening on port: 3000`)
 }
