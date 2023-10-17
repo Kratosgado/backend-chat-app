@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserInput } from './dto/update-user.input';
+import { UpdateUserInput, CreateUserInput } from './user-utils.input';
+import { Prisma } from '@prisma/client';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -10,7 +10,7 @@ export class UserResolver {
 
   @Mutation(() => User)
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.userService.create(createUserInput);
+    return this.userService.createUser(createUserInput);
   }
 
   @Query(() => [User], { name: 'user' })
@@ -19,13 +19,13 @@ export class UserResolver {
   }
 
   @Query(() => User, { name: 'user' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.userService.findOne(id);
+  user(@Args('id', { type: () => Int }) id: Prisma.UserWhereUniqueInput) {
+    return this.userService.user(id);
   }
 
   @Mutation(() => User)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
-    return this.userService.update(updateUserInput.id, updateUserInput);
+    return this.userService.updateUser(updateUserInput);
   }
 
   @Mutation(() => User)

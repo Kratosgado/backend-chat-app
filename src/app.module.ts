@@ -1,10 +1,19 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { UserService } from './user.service';
 import { PrismaService } from './prisma.service';
+import { UserModule } from './user/user.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import {ApolloDriver, ApolloDriverConfig} from '@nestjs/apollo'
 
 @Module({
-  providers: [PrismaService, UserService],
-  controllers: [AppController],
+  imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      // playground: true,
+      autoSchemaFile: true,
+      include: [UserModule],
+      // introspection: true
+    }),
+    UserModule,
+  ],
 })
 export class AppModule {}
