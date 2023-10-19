@@ -1,26 +1,25 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ID } from '@nestjs/graphql';
 import { UserService } from './user.service';
-import { User } from './entities/user.entity';
-import { UpdateUserInput, CreateUserInput } from './user-utils.input';
+import { UpdateUserInput, CreateUserInput, User, GetManyUsersInput } from './user-utils.input';
 import { Prisma } from '@prisma/client';
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Mutation(() => User)
+  @Mutation(() => User,)
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.userService.createUser(createUserInput);
   }
 
-  @Query(() => [User], { name: 'user' })
-  findAll() {
-    return this.userService.findAll();
+  @Query(() => [User], { name: 'users' })
+  findAll(@Args('getManyUsersInput') getManyUsersInput?: GetManyUsersInput) {
+    return this.userService.users(getManyUsersInput);
   }
 
   @Query(() => User, { name: 'user' })
-  user(@Args('id', { type: () => Int }) id: Prisma.UserWhereUniqueInput) {
-    return this.userService.user(id);
+  findOne(@Args('id', { type: () => ID }) id: string) {
+    return this.userService.user({id});
   }
 
   @Mutation(() => User)
@@ -29,7 +28,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  removeUser(@Args('id', { type: () => Int }) id: number) {
-    return this.userService.remove(id);
+  removeUser(@Args('id', { type: () => ID }) id: string) {
+    return this.userService.deleteUser({id});
   }
 }

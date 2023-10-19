@@ -21,13 +21,11 @@ export class UserService {
     * @param updateUser update user arguments
     * @returns {Promise<User>}
     */
-   async updateUser(updateUser: UpdateUserInput): Promise<User>{
-      const { id, email, name, password } = updateUser;
+   async updateUser(updateUserInput: UpdateUserInput): Promise<User>{
+
       return await this.prisma.user.update({
-         where: {
-            id
-         },
-         data: updateUser
+         where: { id: updateUserInput.id },
+         data: updateUserInput
       });
    }
 
@@ -44,12 +42,16 @@ export class UserService {
 
    /**
     * Retrieves users from database
-    * @param getManyDto options to retrieve users from database
+    * @param getManyUsersInput options to retrieve users from database
     * @returns {Promise<User[]>}
     */
-   async users(getManyDto: GetManyUsersInput): Promise<User[]> {
-      // const { skip, take, cursor, where, orderBy } = getManyDto;
-      return await this.prisma.user.findMany(getManyDto);
+   async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
+      const { skip, take, cursor, where, orderBy } = getManyUsersInput;
+      return await this.prisma.user.findMany({
+         where: {
+            name: {contains: where}
+         }
+      });
    }
 
    /**
@@ -62,20 +64,4 @@ export class UserService {
          where: uniqueField
       })
    }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserInput: UpdateUserInput) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
 }
