@@ -15,6 +15,7 @@ model User {
   email         String         @unique
   name          String?
   password      String
+  salt          String
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   posts         Post[]

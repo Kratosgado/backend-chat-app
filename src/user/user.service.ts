@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { UpdateUserInput, GetManyUsersInput } from 'src/user/user-utils.input';
-
+import { UpdateUserInput, GetManyUsersInput, SignInInput } from 'src/user/user-utils.input';
+import * as bcrypt from 'bcrypt'
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) { }
@@ -12,8 +12,22 @@ export class UserService {
     * @param data user data to be used to create new user
     * @returns {Promise<User>}
     */
-   async createUser(data: Prisma.UserCreateInput): Promise<User> {
+   async signUp(data: Prisma.UserCreateInput): Promise<User> {
       return await this.prisma.user.create({ data });
+   }
+
+   async signIn(signInInput: SignInInput): Promise<{ acessToken: string }>{
+      const { email, password } = signInInput;
+      // find user with provided email
+      const user = await this.prisma.user.findUnique({
+         where: { email }
+      });
+
+      if (user && await user(password)) {
+         return 
+      }
+      return null;
+      // const username = await this.validateUserPassword(signInInput);
    }
 
    /**
@@ -69,5 +83,21 @@ export class UserService {
       return await this.prisma.user.delete({
          where: uniqueField
       })
+   }
+
+   async validateToken(email: string): Promise<User | null>{
+      try {
+         const user = await this.prisma.user.findUnique({
+            where: {email}
+         })
+         return user || null;
+      } catch (error) {
+         throw new UnauthorizedException();
+      }
+   }
+
+   async validatePassword(password: string, user: User): Promise<boolean>{
+      const hash = await bcrypt.hash(password, user.salt);
+      return hash === user.password;
    }
 }

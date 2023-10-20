@@ -1,19 +1,20 @@
-import { InputType, ObjectType } from "@nestjs/graphql";
+import { InputType, ObjectType, PartialType } from "@nestjs/graphql";
 import { Prisma, User as UserModel } from "@prisma/client";
-import { IsEmail, IsString, IsStrongPassword, IsUUID } from "class-validator";
+import { IsEmail, IsString, IsStrongPassword, IsUUID, MaxLength, MinLength } from "class-validator";
 import { Conversation } from "src/conversation/conversation-utils.input";
-
+import * as bcrypt from "bcrypt";
 @ObjectType()
 export class User implements UserModel {
   /// Id of user
-  id: string;
-  email: string;
-  name: string;
-  password: string;
+   id: string;
+   email: string;
+   name: string;
+   password: string;
+   salt: string;
   /// Date of account creation
-  createdAt: Date;
-  updatedAt: Date;
-  conversations: Conversation[];
+   createdAt: Date;
+   updatedAt: Date;
+   conversations: Conversation[];
 }
 
 @InputType()
@@ -31,11 +32,16 @@ export class CreateUserInput{
    email: string;
 
    @IsString()
+   @MinLength(4)
+   @MaxLength(20)
    name?: string;
 
    @IsStrongPassword({minLength: 6})
    password: string;
 }
+
+@InputType()
+export class SignInInput extends PartialType(CreateUserInput){}
 
 @InputType()
 export class UpdateUserInput{
