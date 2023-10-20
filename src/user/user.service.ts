@@ -53,6 +53,9 @@ export class UserService {
       return await this.prisma.user.findMany({
          where: {
             name: {contains: where}
+         },
+         include: {
+            conversations: true
          }
       });
    }

@@ -9,19 +9,18 @@ export class ConversationService {
    
    async createChat(createChatInput: CreateChatInput): Promise<ConversationModel> {
       const { convoName, users } = createChatInput;
-      const foundUsers = await this.prisma.user.findMany({
-         where: {
-            id: {
-               in: users
-            }
-         }
-      })
 
       const createdChat = await this.prisma.conversation.create({
          data: {
             convoName,
             users: {
-               connect: foundUsers
+               connect: await this.prisma.user.findMany({
+                  where: {
+                     id: {
+                        in: users
+                     }
+                  }
+               })
             }
          }
       })
@@ -31,6 +30,14 @@ export class ConversationService {
    async chat(unique: Prisma.ConversationWhereUniqueInput): Promise<ConversationModel> {
       return await this.prisma.conversation.findUnique({
          where: unique,
+         include: {
+            users: true
+         }
+      })
+   }
+
+   async chats(): Promise<ConversationModel[]>{
+      return await this.prisma.conversation.findMany({
          include: {
             users: true
          }
