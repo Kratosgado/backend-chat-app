@@ -12,13 +12,13 @@ import { JwtStrategy } from './user.auth';
       defaultStrategy: 'jwt'
     }),
     JwtModule.register({
-      secret: "kratos28935617Aa@",
+      secret: process.env.JWTSECRET,
       signOptions: {
         expiresIn: process.env.EXPIRESIN || 27939237
       }
     })
   ],
   providers: [UserResolver, UserService, PrismaService, JwtStrategy],
-  exports: [PassportModule, JwtModule]
+  exports: [PassportModule, JwtModule, UserService]
 })
 export class UserModule {}

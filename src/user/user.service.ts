@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { Prisma, User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import {JwtService} from '@nestjs/jwt'
@@ -8,6 +8,7 @@ import { JwtPayload } from './user.auth';
 
 @Injectable()
 export class UserService {
+   private logger = new Logger("UserService");
    constructor(
       private readonly prisma: PrismaService,
       private jwtService: JwtService
@@ -33,14 +34,18 @@ export class UserService {
    async signIn(signInInput: SignInInput): Promise<string>{
       const { email, password } = signInInput;
       // find user with provided email
+      this.logger.log(`Finding with email: ${email}`)
       const user = await this.prisma.user.findUnique({
          where: { email }
       });
 
       if (user && await this.validatePassword(password, user)) {
-         const payload: JwtPayload = {username: user.email}
+         this.logger.log(`foundUser: ${user}`)
+
+         const payload: JwtPayload = {email: user.email}
          const accessToken = this.jwtService.sign(payload)
-         
+
+         this.logger.log(`accessToken: ${accessToken}`);
          return accessToken
       }
       throw new UnauthorizedException();
@@ -102,9 +107,10 @@ export class UserService {
       })
    }
 
-   async validateToken(email: string): Promise<UserModel | null>{
+   async validateUserByEmail(email: string): Promise<UserModel | null>{
       try {
-         const user = await this.prisma.user.findUnique({
+         this.logger.log(`validating user by email: ${email}`)
+         const user = await this.prisma.user.findFirst({
             where: {email}
          })
          return user || null;
