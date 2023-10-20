@@ -36,7 +36,10 @@ export class UserService {
     */
    async user(uniqueField: Prisma.UserWhereUniqueInput): Promise<User | null> {
       return await this.prisma.user.findUnique({
-         where: uniqueField
+         where: uniqueField,
+         include: {
+            conversations: true
+         }
       });
    }
 
@@ -46,7 +49,7 @@ export class UserService {
     * @returns {Promise<User[]>}
     */
    async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
-      const { skip, take, cursor, where, orderBy } = getManyUsersInput;
+      const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
       return await this.prisma.user.findMany({
          where: {
             name: {contains: where}

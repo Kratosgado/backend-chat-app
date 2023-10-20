@@ -13,7 +13,7 @@ export class UserResolver {
   }
 
   @Query(() => [User], { name: 'users' })
-  findAll(@Args('getManyUsersInput') getManyUsersInput?: GetManyUsersInput) {
+  findAll(@Args('getManyUsersInput', {nullable: true}) getManyUsersInput?: GetManyUsersInput) {
     return this.userService.users(getManyUsersInput);
   }
 
