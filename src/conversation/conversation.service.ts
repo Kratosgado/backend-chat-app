@@ -1,43 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Conversation, CreateChatInput } from './conversation-utils.input';
-import { Prisma, Conversation as ConversationModel } from '@prisma/client';
+import { Prisma, Conversation as ConversationModel, User } from '@prisma/client';
 
 @Injectable()
 export class ConversationService {
    constructor(private readonly prisma: PrismaService) { }
    
-   async createChat(createChatInput: CreateChatInput): Promise<ConversationModel> {
+   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<ConversationModel> {
       const { convoName, users } = createChatInput;
+      users.filter(id => id !== currentUser.id);
+      const foundUsers = await this.prisma.user.findMany({
+         where: {
+            id: {
+               in: users
+            }
+         }
+      });
 
       const createdChat = await this.prisma.conversation.create({
          data: {
             convoName,
             users: {
-               connect: await this.prisma.user.findMany({
-                  where: {
-                     id: {
-                        in: users
-                     }
-                  }
-               })
+               connect:[currentUser, ...foundUsers]
             }
          }
       })
       return createdChat
    }
 
-   async chat(unique: Prisma.ConversationWhereUniqueInput): Promise<ConversationModel> {
+   async chat({id}: Prisma.ConversationWhereUniqueInput, currentUser: User): Promise<ConversationModel> {
       return await this.prisma.conversation.findUnique({
-         where: unique,
+         where: {
+            id: id,
+            users: {
+               some: currentUser
+            }
+         },
          include: {
             users: true
          }
       })
    }
 
-   async chats(): Promise<ConversationModel[]>{
+   async chats(currentUser: User): Promise<ConversationModel[]>{
       return await this.prisma.conversation.findMany({
+         where: {
+            users: {
+               some: currentUser
+            }
+         },
          include: {
             users: true
          }

@@ -1,41 +1,58 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Prisma, User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { UpdateUserInput, GetManyUsersInput, SignInInput } from 'src/user/user-utils.input';
+import {JwtService} from '@nestjs/jwt'
+import { UpdateUserInput, GetManyUsersInput, SignInInput, User, SignUpInput } from 'src/user/user-utils.input';
 import * as bcrypt from 'bcrypt'
+import { JwtPayload } from './user.auth';
+
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) { }
+   constructor(
+      private readonly prisma: PrismaService,
+      private jwtService: JwtService
+   ) { }
    
    /**
     * Creates and return a new user
     * @param data user data to be used to create new user
-    * @returns {Promise<User>}
+    * @returns {Promise<UserModel>}
     */
-   async signUp(data: Prisma.UserCreateInput): Promise<User> {
-      return await this.prisma.user.create({ data });
+   async signUp(signUpInput: SignUpInput): Promise<UserModel> {
+      const data = signUpInput as Prisma.UserCreateInput;
+      data.salt = await bcrypt.genSalt();
+      data.password = await this.hashPassword(data.password, data.salt);
+      
+      try {
+         return await this.prisma.user.create({ data });
+      } catch (error) {
+         throw new InternalServerErrorException();
+      }
    }
 
-   async signIn(signInInput: SignInInput): Promise<{ acessToken: string }>{
+   async signIn(signInInput: SignInInput): Promise<string>{
       const { email, password } = signInInput;
       // find user with provided email
       const user = await this.prisma.user.findUnique({
          where: { email }
       });
 
-      if (user && await user(password)) {
-         return 
+      if (user && await this.validatePassword(password, user)) {
+         const payload: JwtPayload = {username: user.email}
+         const accessToken = this.jwtService.sign(payload)
+         
+         return accessToken
       }
-      return null;
+      throw new UnauthorizedException();
       // const username = await this.validateUserPassword(signInInput);
    }
 
    /**
     * Updates a user data
     * @param updateUser update user arguments
-    * @returns {Promise<User>}
+    * @returns {Promise<UserModel>}
     */
-   async updateUser(updateUserInput: UpdateUserInput): Promise<User>{
+   async updateUser(updateUserInput: UpdateUserInput): Promise<UserModel>{
 
       return await this.prisma.user.update({
          where: { id: updateUserInput.id },
@@ -46,9 +63,9 @@ export class UserService {
    /**
     * Retrieves a user from the database
     * @param id id of the user to be retrieved
-    * @returns {Promise<User | null>} User || null
+    * @returns {Promise<UserModel | null>} UserModel || null
     */
-   async user(uniqueField: Prisma.UserWhereUniqueInput): Promise<User | null> {
+   async user(uniqueField: Prisma.UserWhereUniqueInput): Promise<UserModel | null> {
       return await this.prisma.user.findUnique({
          where: uniqueField,
          include: {
@@ -60,9 +77,9 @@ export class UserService {
    /**
     * Retrieves users from database
     * @param getManyUsersInput options to retrieve users from database
-    * @returns {Promise<User[]>}
+    * @returns {Promise<UserModel[]>}
     */
-   async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
+   async users(getManyUsersInput: GetManyUsersInput): Promise<UserModel[]> {
       const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
       return await this.prisma.user.findMany({
          where: {
@@ -85,7 +102,7 @@ export class UserService {
       })
    }
 
-   async validateToken(email: string): Promise<User | null>{
+   async validateToken(email: string): Promise<UserModel | null>{
       try {
          const user = await this.prisma.user.findUnique({
             where: {email}
@@ -95,9 +112,12 @@ export class UserService {
          throw new UnauthorizedException();
       }
    }
-
-   async validatePassword(password: string, user: User): Promise<boolean>{
+   async validatePassword(password: string, user: UserModel): Promise<boolean> {
       const hash = await bcrypt.hash(password, user.salt);
       return hash === user.password;
+   }
+
+   async hashPassword(password: string, salt: string): Promise<string>{
+      return await bcrypt.hash(password, salt);
    }
 }

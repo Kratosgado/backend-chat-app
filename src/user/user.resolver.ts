@@ -1,15 +1,21 @@
 import { Resolver, Query, Mutation, Args, Int, ID } from '@nestjs/graphql';
 import { UserService } from './user.service';
-import { UpdateUserInput, CreateUserInput, User, GetManyUsersInput } from './user-utils.input';
+import { UpdateUserInput, SignUpInput, User, GetManyUsersInput, SignInInput } from './user-utils.input';
 import { Prisma } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
   @Mutation(() => User,)
-  signUp(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.userService.signUp(createUserInput);
+  signUp(@Args('signUpInput') signUpInput: SignUpInput) {
+    return this.userService.signUp(signUpInput);
+  }
+
+  @Mutation(() => String)
+  signIn(@Args('signInInput') signInInput: SignInInput) {
+    return this.userService.signIn(signInInput);
   }
 
   @Query(() => [User], { name: 'users' })
