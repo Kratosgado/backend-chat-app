@@ -114,7 +114,6 @@ export class UserService {
 
    async validateUserByEmail(email: string): Promise<UserModel | null>{
       try {
-         this.logger.log(`validating user by email: ${email}`)
          const user = await this.prisma.user.findFirst({
             where: {email}
          })

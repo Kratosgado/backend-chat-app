@@ -75,15 +75,15 @@ export class ConversationService {
    async chat(id: string, currentUser: User): Promise<ConversationModel> {
       const foundChat = await this.prisma.conversation.findUnique({
          where: {
-            id: id,
-            users: {
-               some: currentUser
-            }
+            id,
+            
          },
          include: {
-            users: true
+            users: true,
+            messages: true
          }
       });
+      this.logger.log(`found users: ${foundChat.users}`)
       foundChat.convoName = foundChat.users.find(user => user !== currentUser).name;
       return foundChat;
    }
@@ -101,7 +101,7 @@ export class ConversationService {
             }
          },
          include: {
-            users: true
+            users: true,
          }
       });
       foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).name)
@@ -133,7 +133,7 @@ export class ConversationService {
                }
             })
          ])
-         
+         return "User removed"
       } catch (error) {
          this.logger.error(error);
          return error;

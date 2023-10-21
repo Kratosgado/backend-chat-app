@@ -6,6 +6,7 @@ import { PrismaService } from './prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
 import { MessageResolver } from './message/message.resolver';
 import { MessageService } from './message/message.service';
+import { ConversationService } from './conversation/conversation.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { MessageService } from './message/message.service';
     UserModule,
     ConversationModule,
   ],
-  providers: [PrismaService, MessageService]
+  providers: [PrismaService, MessageService, ConversationService]
 })
 export class AppModule {}

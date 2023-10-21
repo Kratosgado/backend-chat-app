@@ -21,7 +21,7 @@ export class ConversationResolver {
     return this.conversationService.createChat(createChatInput, currentUser)
   }
 
-  @Mutation()
+  @Mutation(() => String)
   removeUserFromChat(
     @Args("removeUserInput") removeUserInput: RemoveUserInput,
     @GetUser() currentUser: User,
