@@ -1,6 +1,6 @@
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { ConversationService } from './conversation.service';
-import { Conversation, CreateChatInput } from './conversation-utils.input';
+import { Conversation, CreateChatInput, RemoveUserInput } from './conversation-utils.input';
 import { Prisma, User } from '@prisma/client';
 import { UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/user/user.auth';
@@ -21,13 +21,21 @@ export class ConversationResolver {
     return this.conversationService.createChat(createChatInput, currentUser)
   }
 
+  @Mutation()
+  removeUserFromChat(
+    @Args("removeUserInput") removeUserInput: RemoveUserInput,
+    @GetUser() currentUser: User,
+  ) {
+    return this.conversationService.removeUserFromChat(removeUserInput, currentUser)
+  }
+
   
   @Query(() => Conversation)
   chat(
     @Args("id") id: string,
     @GetUser() currentUser: User
   ) {
-    return this.conversationService.chat({id}, currentUser);
+    return this.conversationService.chat(id, currentUser);
   }
 
   @Query(() => [Conversation])
@@ -36,4 +44,5 @@ export class ConversationResolver {
   ) {
     return this.conversationService.chats(currentUser);
   }
+
 }

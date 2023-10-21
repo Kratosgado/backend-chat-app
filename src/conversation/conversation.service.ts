@@ -1,14 +1,24 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Conversation, CreateChatInput } from './conversation-utils.input';
+import { Conversation, CreateChatInput, RemoveUserInput } from './conversation-utils.input';
 import { Prisma, Conversation as ConversationModel, User } from '@prisma/client';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ConversationService {
    private logger = new Logger("ConversationService");
 
-   constructor(private readonly prisma: PrismaService) { }
+   constructor(
+      private readonly prisma: PrismaService,
+      private readonly userService: UserService,
+   ) { }
    
+   /**
+    * Creates a new chat. Returns found chat if one already exist
+    * @param createChatInput Data to create a new comversation
+    * @param currentUser Authenticated User
+    * @returns {Promise<ConversationModel>}
+    */
    async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<ConversationModel> {
       const { convoName, users } = createChatInput;
       users.filter(id => id !== currentUser.id);
@@ -39,7 +49,7 @@ export class ConversationService {
          });
          if (foundChat) {
             this.logger.warn("Chat already exist for users");
-            throw new NotAcceptableException("Chat already exist for users");
+            return foundChat;
          }
          this.logger.log("Creating chat...")
          const createdChat = await this.prisma.conversation.create({
@@ -56,7 +66,13 @@ export class ConversationService {
       }
    }
 
-   async chat({id}: Prisma.ConversationWhereUniqueInput, currentUser: User): Promise<ConversationModel> {
+   /**
+    * Retrieves a chat by id specific to the user.
+    * @param id {id} of the chat to be retrieved
+    * @param currentUser Authenticated User
+    * @returns {Promise<ConversationModel>}
+    */
+   async chat(id: string, currentUser: User): Promise<ConversationModel> {
       const foundChat = await this.prisma.conversation.findUnique({
          where: {
             id: id,
@@ -72,6 +88,11 @@ export class ConversationService {
       return foundChat;
    }
 
+   /**
+    * Retrieves a list of personalized conversations
+    * @param currentUser Authenticated user
+    * @returns {Promise<ConversationModel[]>} 
+    */
    async chats(currentUser: User): Promise<ConversationModel[]>{
       const foundChats = await this.prisma.conversation.findMany({
          where: {
@@ -85,5 +106,37 @@ export class ConversationService {
       });
       foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).name)
       return foundChats;
+   }
+
+   /**
+    * Removes users from chat. Deletes chat if there's no user left after user removeal
+    * @param conversationId Id of chat to remove usre from
+    * @param currentUser Authenticated User
+    * @param userIds List of id of users to be removed
+    * @returns void
+    */
+   async removeUserFromChat(removeUserInput: RemoveUserInput, currentUser: User) {
+      const {conversationId, userIds } = removeUserInput;
+      try {
+         const foundChat = await this.chat(conversationId, currentUser) as Conversation;
+         if (foundChat.users.length === 1) {
+            await this.prisma.conversation.delete({ where: { id: foundChat.id } });
+            return 
+         }
+         await this.prisma.$transaction([
+            this.prisma.conversation.update({
+               where: { id: conversationId },
+               data: {
+                  users: {
+                     disconnect: await this.userService.getUsers({ userIds })
+                  }
+               }
+            })
+         ])
+         
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
    }
 }

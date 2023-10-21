@@ -16,3 +16,9 @@ export class CreateChatInput {
    convoName?: string;
    users: string[];
 }
+
+@InputType()
+export class RemoveUserInput{
+   conversationId: string
+   userIds?: string[]
+}

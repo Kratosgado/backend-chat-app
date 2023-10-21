@@ -84,14 +84,19 @@ export class UserService {
     * @param getManyUsersInput options to retrieve users from database
     * @returns {Promise<UserModel[]>}
     */
-   async users(getManyUsersInput: GetManyUsersInput): Promise<UserModel[]> {
-      const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
+   async getUsers(getManyUsersInput: GetManyUsersInput): Promise<UserModel[]> {
+      const { skip, take, cursor, search, userIds } = getManyUsersInput ?? {};
       return await this.prisma.user.findMany({
          where: {
-            name: {contains: where}
+            name: { contains: search },
+            AND: {
+               id: {
+                  in: userIds
+               }
+            }
          },
          include: {
-            conversations: true
+            conversations: !userIds // include conversation when we are not just interested in the users
          }
       });
    }

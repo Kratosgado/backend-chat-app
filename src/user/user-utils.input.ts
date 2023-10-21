@@ -22,8 +22,8 @@ export class GetManyUsersInput{
    skip?: number;
    take?: number;
    cursor?: string;
-   where?: string;
-   orderBy?: string;
+   search?: string;
+   userIds?: string[];
 }
 
 @InputType()
