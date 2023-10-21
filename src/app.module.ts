@@ -4,7 +4,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import {ApolloDriver, ApolloDriverConfig} from '@nestjs/apollo'
 import { PrismaService } from './prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
-import { MessageResolver } from './message/message.resolver';
 import { MessageService } from './message/message.service';
 import { ConversationService } from './conversation/conversation.service';
 
@@ -14,7 +13,7 @@ import { ConversationService } from './conversation/conversation.service';
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: true,
-      include: [UserModule, ConversationModule],
+      // include: [UserModule, ConversationModule, MessageModule],
       introspection: true,
       
     }),

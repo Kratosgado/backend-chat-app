@@ -75,16 +75,15 @@ export class ConversationService {
    async chat(id: string, currentUser: User): Promise<ConversationModel> {
       const foundChat = await this.prisma.conversation.findUnique({
          where: {
-            id,
-            
+            id,   
          },
          include: {
-            users: true,
+            users: {where: {id: {not: {equals: currentUser.id}}}},
             messages: true
          }
       });
       this.logger.log(`found users: ${foundChat.users}`)
-      foundChat.convoName = foundChat.users.find(user => user !== currentUser).name;
+      foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).name;
       return foundChat;
    }
 
@@ -101,10 +100,11 @@ export class ConversationService {
             }
          },
          include: {
-            users: true,
+            users: { where: { id: { not: { equals: currentUser.id } } } },
+            messages: {take: 1, orderBy: {"createdAt": "desc"}}
          }
       });
-      foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).name)
+      foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).name)
       return foundChats;
    }
 
@@ -115,13 +115,13 @@ export class ConversationService {
     * @param userIds List of id of users to be removed
     * @returns void
     */
-   async removeUserFromChat(removeUserInput: RemoveUserInput, currentUser: User) {
+   async removeUserFromChat(removeUserInput: RemoveUserInput, currentUser: User): Promise<string> {
       const {conversationId, userIds } = removeUserInput;
       try {
          const foundChat = await this.chat(conversationId, currentUser) as Conversation;
          if (foundChat.users.length === 1) {
             await this.prisma.conversation.delete({ where: { id: foundChat.id } });
-            return 
+            return `Conversation deleted: There was only one user left`
          }
          await this.prisma.$transaction([
             this.prisma.conversation.update({
@@ -133,7 +133,7 @@ export class ConversationService {
                }
             })
          ])
-         return "User removed"
+         return `User removed from chat: ${userIds}`
       } catch (error) {
          this.logger.error(error);
          return error;

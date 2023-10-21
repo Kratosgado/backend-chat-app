@@ -1,5 +1,6 @@
 import { InputType, ObjectType } from "@nestjs/graphql";
-import {Conversation as ConversationModel, Prisma} from '@prisma/client'
+import {Conversation as ConversationModel} from '@prisma/client'
+import { Message } from "src/message/message-utils.input";
 import { User } from "src/user/user-utils.input";
 
 @ObjectType()
@@ -8,7 +9,8 @@ export class Conversation implements ConversationModel {
    convoName: string;
    createdAt: Date;
    updatedAt: Date;
-   users: User[];
+   users?: User[];
+   messages?: Message[];
 }
 
 @InputType()

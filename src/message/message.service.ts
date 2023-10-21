@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { PrismaService } from 'src/prisma.service';
 import { User } from 'src/user/user-utils.input';
-import { SendMessageInput } from './message-utils.input';
+import { Message, SendMessageInput } from './message-utils.input';
 
 @Injectable()
 export class MessageService {
@@ -23,6 +23,6 @@ export class MessageService {
             conversationId
          }
       });
-      return "message saved"
+      return `message sent: content = ${message.content}`
    }
 }

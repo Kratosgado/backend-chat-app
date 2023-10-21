@@ -11,7 +11,7 @@ import { MessageService } from 'src/message/message.service';
   providers: [
     ConversationResolver, ConversationService,
     UserService, JwtService,
-    MessageResolver, MessageService,
+    MessageResolver,  MessageService,
     PrismaService],
 })
 export class ConversationModule {}
