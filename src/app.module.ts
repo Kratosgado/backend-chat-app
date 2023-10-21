@@ -4,6 +4,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import {ApolloDriver, ApolloDriverConfig} from '@nestjs/apollo'
 import { PrismaService } from './prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
+import { MessageResolver } from './message/message.resolver';
+import { MessageService } from './message/message.service';
 
 @Module({
   imports: [
@@ -18,6 +20,6 @@ import { ConversationModule } from './conversation/conversation.module';
     UserModule,
     ConversationModule,
   ],
-  providers: [PrismaService]
+  providers: [PrismaService, MessageService]
 })
 export class AppModule {}

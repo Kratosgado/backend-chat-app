@@ -22,3 +22,9 @@ export class RemoveUserInput{
    conversationId: string
    userIds?: string[]
 }
+
+@InputType()
+export class SendMessageInput{
+   content: string;
+   conversationId: string;
+}
