@@ -6,6 +6,7 @@ import { UpdateUserInput, GetManyUsersInput, SignInInput, User, SignUpInput } fr
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
 import { FileUpload } from 'graphql-upload/Upload.mjs';
+import { encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
 
 @Injectable()
 export class UserService {
@@ -125,9 +126,10 @@ export class UserService {
    }
 
    async updateProfilePicture(file: FileUpload, currentUser: User) {
+      const profilePic = await encodeImageToBase64(file);
       return this.prisma.user.update({
         where: { id: currentUser.id },
-        data: {profilePic: file.filename},
+        data: {profilePic},
       });
    }
    
