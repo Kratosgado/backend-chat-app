@@ -5,6 +5,7 @@ import {JwtService} from '@nestjs/jwt'
 import { UpdateUserInput, GetManyUsersInput, SignInInput, User, SignUpInput } from 'src/user/user-utils.input';
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
+import { FileUpload } from 'graphql-upload/Upload.mjs';
 
 @Injectable()
 export class UserService {
@@ -122,6 +123,14 @@ export class UserService {
          throw new UnauthorizedException();
       }
    }
+
+   async updateProfilePicture(file: FileUpload, currentUser: User) {
+      return this.prisma.user.update({
+        where: { id: currentUser.id },
+        data: {profilePic: file.filename},
+      });
+   }
+   
    async validatePassword(password: string, user: UserModel): Promise<boolean> {
       const hash = await bcrypt.hash(password, user.salt);
       return hash === user.password;

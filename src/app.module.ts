@@ -15,7 +15,7 @@ import { ConversationService } from './conversation/conversation.service';
       autoSchemaFile: true,
       // include: [UserModule, ConversationModule, MessageModule],
       introspection: true,
-      
+      installSubscriptionHandlers: true,
     }),
     UserModule,
     ConversationModule,

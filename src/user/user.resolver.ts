@@ -3,6 +3,10 @@ import { UserService } from './user.service';
 import { UpdateUserInput, SignUpInput, User, GetManyUsersInput, SignInInput } from './user-utils.input';
 import { Prisma } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUser, JwtAuthGaurd } from './user.auth';
+import { UseGuards } from '@nestjs/common';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs'
+import { FileUpload } from 'graphql-upload/Upload.mjs'
 
 @Resolver(() => User)
 export class UserResolver {
@@ -36,5 +40,13 @@ export class UserResolver {
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => ID }) id: string) {
     return this.userService.deleteUser({id});
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGaurd)
+  async updateProfilePicture(
+    @GetUser() currentUser: User,
+    @Args({name: 'file', type: ()=> GraphQLUpload}) file: FileUpload) {
+    return await this.userService.updateProfilePicture(file, currentUser);
   }
 }
