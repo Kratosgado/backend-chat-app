@@ -126,4 +126,11 @@ export class UserService {
    async hashPassword(password: string, salt: string): Promise<string>{
       return await bcrypt.hash(password, salt);
    }
+  findOne(id: number) {
+    return `This action returns a #${id} user`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} user`;
+  }
 }
