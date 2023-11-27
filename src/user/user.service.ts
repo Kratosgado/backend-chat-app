@@ -2,7 +2,6 @@ import { Injectable, InternalServerErrorException, Logger, UnauthorizedException
 import { Prisma, User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import {JwtService} from '@nestjs/jwt'
-import { UpdateUserInput, GetManyUsersInput, SignInInput, User, SignUpInput } from 'src/user/user-utils.input';
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
 
@@ -19,20 +18,19 @@ export class UserService {
     * @param data user data to be used to create new user
     * @returns {Promise<UserModel>}
     */
-   async signUp(signUpInput: SignUpInput): Promise<UserModel> {
-      const data = signUpInput as Prisma.UserCreateInput;
-      data.salt = await bcrypt.genSalt();
-      data.password = await this.hashPassword(data.password, data.salt);
+   async signUp(signUpInput: Prisma.UserCreateInput): Promise<UserModel> {
+      signUpInput.salt = await bcrypt.genSalt();
+      signUpInput.password = await this.hashPassword(signUpInput.password, signUpInput.salt);
       
       try {
-         return await this.prisma.user.create({ data });
+         return await this.prisma.user.create({data: signUpInput});
       } catch (error) {
          throw new InternalServerErrorException();
       }
    }
 
-   async signIn(signInInput: SignInInput): Promise<string>{
-      const { email, password } = signInInput;
+   async signIn(signInInput: Prisma.UserCreateArgs): Promise<string>{
+      const { email, password } = signInInput.data;
       // find user with provided email
       this.logger.log(`Finding with email: ${email}`)
       const user = await this.prisma.user.findUnique({
@@ -57,12 +55,9 @@ export class UserService {
     * @param updateUser update user arguments
     * @returns {Promise<UserModel>}
     */
-   async updateUser(updateUserInput: UpdateUserInput): Promise<UserModel>{
+   async updateUser(updateUserInput: Prisma.UserUpdateArgs): Promise<UserModel>{
 
-      return await this.prisma.user.update({
-         where: { id: updateUserInput.id },
-         data: updateUserInput
-      });
+      return await this.prisma.user.update(updateUserInput);
    }
 
    /**
@@ -70,13 +65,8 @@ export class UserService {
     * @param id id of the user to be retrieved
     * @returns {Promise<UserModel | null>} UserModel || null
     */
-   async user(uniqueField: Prisma.UserWhereUniqueInput): Promise<UserModel | null> {
-      return await this.prisma.user.findUnique({
-         where: uniqueField,
-         include: {
-            conversations: true
-         }
-      });
+   async user(uniqueField: Prisma.UserFindUniqueArgs): Promise<UserModel | null> {
+      return await this.prisma.user.findUnique(uniqueField);
    }
 
    /**
@@ -84,16 +74,9 @@ export class UserService {
     * @param getManyUsersInput options to retrieve users from database
     * @returns {Promise<UserModel[]>}
     */
-   async users(getManyUsersInput: GetManyUsersInput): Promise<UserModel[]> {
-      const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
-      return await this.prisma.user.findMany({
-         where: {
-            name: {contains: where}
-         },
-         include: {
-            conversations: true
-         }
-      });
+   async users(getManyUsersInput: Prisma.UserFindManyArgs): Promise<UserModel[]> {
+      // const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
+      return await this.prisma.user.findMany(getManyUsersInput);
    }
 
    /**
@@ -101,10 +84,8 @@ export class UserService {
     * @param id id of the user to be deleted
     * @returns void
     */
-   async deleteUser(uniqueField: Prisma.UserWhereUniqueInput) {
-      return await this.prisma.user.delete({
-         where: uniqueField
-      })
+   async deleteUser(uniqueField: Prisma.UserFindUniqueArgs) {
+      return await this.prisma.user.delete(uniqueField)
    }
 
    async validateUserByEmail(email: string): Promise<UserModel | null>{

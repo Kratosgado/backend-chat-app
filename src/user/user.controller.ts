@@ -2,33 +2,39 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Prisma } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Post("/signup")
+  signUp(@Body('signUpInput') signUpInput: Prisma.UserCreateInput) {
+    return this.userService.signUp(signUpInput);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Post("/signin")
+  signIn(@Body('signInInput') signInInput: Prisma.UserCreateArgs) {
+    return this.userService.signIn(signInInput);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Get("/findall")
+  findAll(@Body() getManyUsersInput?: Prisma.UserFindManyArgs) {
+    return this.userService.users(getManyUsersInput);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @Get('/find/:id')
+  findOne(@Param() id: Prisma.UserFindUniqueArgs) {
+    return this.userService.user(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Patch('/update')
+  updateUser(@Body() updateUserInput: Prisma.UserUpdateArgs) {
+    return this.userService.updateUser(updateUserInput);
+  }
+
+  @Delete('/delete/:id')
+  removeUser(@Param() id: Prisma.UserFindUniqueArgs) {
+    return this.userService.deleteUser(id);
   }
 }
