@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { Prisma, User as UserModel } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import {JwtService} from '@nestjs/jwt'
+import { JwtService } from '@nestjs/jwt'
 import { UpdateUserInput, GetManyUsersInput, SignInInput, User, SignUpInput } from 'src/user/user-utils.input';
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
-import { FileUpload } from 'graphql-upload/Upload.mjs';
+import { FileUpload } from 'graphql-upload';
 import { encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UserService {
       private readonly prisma: PrismaService,
       private jwtService: JwtService
    ) { }
-   
+
    /**
     * Creates and return a new user
     * @param data user data to be used to create new user
@@ -25,7 +25,7 @@ export class UserService {
       const data = signUpInput as Prisma.UserCreateInput;
       data.salt = await bcrypt.genSalt();
       data.password = await this.hashPassword(data.password, data.salt);
-      
+
       try {
          return await this.prisma.user.create({ data });
       } catch (error) {
@@ -33,7 +33,7 @@ export class UserService {
       }
    }
 
-   async signIn(signInInput: SignInInput): Promise<string>{
+   async signIn(signInInput: SignInInput): Promise<string> {
       const { email, password } = signInInput;
       // find user with provided email
       this.logger.log(`Finding with email: ${email}`)
@@ -44,7 +44,7 @@ export class UserService {
       if (user && await this.validatePassword(password, user)) {
          this.logger.log(`foundUser: ${user}`)
 
-         const payload: JwtPayload = {email: user.email}
+         const payload: JwtPayload = { email: user.email }
          const accessToken = this.jwtService.sign(payload)
 
          this.logger.log(`accessToken: ${accessToken}`);
@@ -59,7 +59,7 @@ export class UserService {
     * @param updateUser update user arguments
     * @returns {Promise<UserModel>}
     */
-   async updateUser(updateUserInput: UpdateUserInput): Promise<UserModel>{
+   async updateUser(updateUserInput: UpdateUserInput): Promise<UserModel> {
 
       return await this.prisma.user.update({
          where: { id: updateUserInput.id },
@@ -114,10 +114,10 @@ export class UserService {
       })
    }
 
-   async validateUserByEmail(email: string): Promise<UserModel | null>{
+   async validateUserByEmail(email: string): Promise<UserModel | null> {
       try {
          const user = await this.prisma.user.findFirst({
-            where: {email}
+            where: { email }
          })
          return user || null;
       } catch (error) {
@@ -128,17 +128,17 @@ export class UserService {
    async updateProfilePicture(file: FileUpload, currentUser: User) {
       const profilePic = await encodeImageToBase64(file);
       return this.prisma.user.update({
-        where: { id: currentUser.id },
-        data: {profilePic},
+         where: { id: currentUser.id },
+         data: { profilePic },
       });
    }
-   
+
    async validatePassword(password: string, user: UserModel): Promise<boolean> {
       const hash = await bcrypt.hash(password, user.salt);
       return hash === user.password;
    }
 
-   async hashPassword(password: string, salt: string): Promise<string>{
+   async hashPassword(password: string, salt: string): Promise<string> {
       return await bcrypt.hash(password, salt);
    }
 }

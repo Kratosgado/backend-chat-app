@@ -10,6 +10,7 @@ export class User implements UserModel {
    email: string;
    name: string;
    password: string;
+   profilePic: string;
    salt: string;
   /// Date of account creation
    createdAt: Date;

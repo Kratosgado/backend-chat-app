@@ -1,10 +1,11 @@
 import * as fs from "fs";
-import { FileUpload } from "graphql-upload/Upload.mjs";
+import { FileUpload } from "graphql-upload";
 
 export async function encodeImageToBase64(file: FileUpload): Promise < string > {
    // convert file to base64
    try {
       const stream = file.createReadStream();
+
       const chunks = [];
       for await (const chunk of stream) {
          chunks.push(chunk);
