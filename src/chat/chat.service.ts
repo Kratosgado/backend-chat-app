@@ -68,7 +68,7 @@ export class ChatService {
             users: true
          }
       });
-      foundChat.convoName = foundChat.users.find(user => user !== currentUser).name;
+      foundChat.convoName = foundChat.users.find(user => user !== currentUser).username;
       return foundChat;
    }
 
@@ -83,7 +83,7 @@ export class ChatService {
             users: true
          }
       });
-      foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).name)
+      foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).username)
       return foundChats;
    }
 }

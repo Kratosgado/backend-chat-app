@@ -7,7 +7,7 @@ export class User implements UserModel {
   /// Id of user
    id: string;
    email: string;
-   name: string;
+   username: string;
    password: string;
    profilePic: string;
    salt: string;
@@ -15,6 +15,11 @@ export class User implements UserModel {
    createdAt: Date;
    updatedAt: Date;
    conversations: Chat[];
+
+   async validatePassword(password: string): Promise<boolean> {
+      const hash = await bcrypt.hash(password, this.salt);
+      return hash === this.password;
+   }
 }
 
 export class GetManyUsersInput{
@@ -32,7 +37,7 @@ export class SignUpInput{
    @IsString()
    @MinLength(4)
    @MaxLength(20)
-   name?: string;
+   username?: string;
 
    @IsStrongPassword({minLength: 6})
    password: string;
@@ -47,7 +52,7 @@ export class UpdateUserInput{
 
    @IsEmail()
    email?: string;
-   name?: string;
+   username?: string;
    password?: string;
 }
 

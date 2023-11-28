@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { PrismaService } from './prisma.service';
 
 async function bootstrap() {
-  
+
   const logger = new Logger('bootstrap');
 
   const app = await NestFactory.create(AppModule);
@@ -13,8 +13,8 @@ async function bootstrap() {
   app.enableCors()
   app.get(PrismaService);
   app.enableShutdownHooks()
-  await app.listen(3000);
-  
-  logger.log(`Application listening on port: 3000`)
+  await app.listen(4000);
+
+  logger.log(`Application listening on port: 4000`)
 }
 bootstrap();

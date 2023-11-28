@@ -1,18 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Prisma } from '@prisma/client';
+import { SignUpInput } from './user.utils';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Post("/signup")
-  signUp(@Body('signUpInput') signUpInput: Prisma.UserCreateInput) {
+  signUp(@Body() signUpInput: SignUpInput) {
     return this.userService.signUp(signUpInput);
   }
 
   @Post("/signin")
-  signIn(@Body('signInInput') signInInput: Prisma.UserCreateArgs) {
+  signIn(@Body() signInInput: Prisma.UserCreateArgs) {
     return this.userService.signIn(signInInput);
   }
 
