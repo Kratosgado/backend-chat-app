@@ -7,13 +7,7 @@ import { GqlExecutionContext } from "@nestjs/graphql";
 import { Observable } from "rxjs";
 
 @Injectable()
-export class JwtAuthGaurd extends AuthGuard('jwt') {
-   getRequest(context: ExecutionContext) {
-      const ctx = GqlExecutionContext.create(context);
-      return ctx.getContext().req;
-   }
-}
-
+export class JwtAuthGaurd extends AuthGuard('jwt') {}
 
 export interface JwtPayload {
    email: string;
@@ -39,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
 export const GetUser = createParamDecorator(
    (data: unknown, ctx: ExecutionContext) => {
-      const request = GqlExecutionContext.create(ctx).getContext().req;
+      const request = ctx.switchToHttp().getRequest();
       return request.user
    }
 )
