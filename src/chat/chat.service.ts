@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, Chat as chatModel, User } from '@prisma/client';
+import { CreateChatInput } from './chat.utils';
 
 @Injectable()
 export class ChatService {
@@ -8,7 +9,7 @@ export class ChatService {
 
    constructor(private readonly prisma: PrismaService) { }
    
-   async createChat(createChatInput: Prisma.ChatCreateInput, currentUser: User): Promise<chatModel> {
+   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<chatModel> {
       const { convoName, users } = createChatInput;
       // users.filter(id => id !== currentUser.id);
       try {

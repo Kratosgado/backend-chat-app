@@ -4,6 +4,7 @@ import { ChatService } from './chat.service';
 import { Prisma, User } from '@prisma/client';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/user/user.auth';
+import { CreateChatInput } from './chat.utils';
 
 /**
  * Handles Chat
@@ -15,7 +16,7 @@ export class ChatController {
 
   @Post('/create')
   createChat(
-    @Body("createChatInput",) createChatInput: Prisma.ChatCreateInput,
+    @Body("createChatInput",) createChatInput: CreateChatInput,
     @GetUser() currentUser: User
   ) {
     return this.chatService.createChat(createChatInput, currentUser)
