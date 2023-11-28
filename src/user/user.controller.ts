@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UseInterceptors, UploadedFile, UseGuards, Res, Header } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Prisma } from '@prisma/client';
-import { SignUpInput } from './user.utils';
+import { Prisma, User } from '@prisma/client';
+import { SignInInput, SignUpInput } from './user.utils';
+import { FileInterceptor } from '@nestjs/platform-express'
+import { GetUser, JwtAuthGaurd } from './user.auth';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UserController {
@@ -13,7 +16,7 @@ export class UserController {
   }
 
   @Post("/signin")
-  signIn(@Body() signInInput: Prisma.UserCreateArgs) {
+  signIn(@Body() signInInput: SignInInput) {
     return this.userService.signIn(signInInput);
   }
 
@@ -30,6 +33,20 @@ export class UserController {
   @Patch('/update')
   updateUser(@Body() updateUserInput: Prisma.UserUpdateArgs) {
     return this.userService.updateUser(updateUserInput);
+  }
+
+  @Post('updateProfilePic')
+  @UseGuards(JwtAuthGaurd)
+  @UseInterceptors(FileInterceptor('file'))
+  updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {
+    return this.userService.updateProfilePicture(image, currentUser)
+  }
+
+  @Get('getProfilePic')
+  @UseGuards(JwtAuthGaurd)
+  // @Header('Content-Type', 'application/json')
+  getProfilePicture(@GetUser() currentUser: User) {
+    return this.userService.getProfilePicture(currentUser);
   }
 
   @Delete('/delete/:id')

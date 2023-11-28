@@ -1,12 +1,14 @@
-import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
-import { Prisma, User as UserModel } from '@prisma/client';
+import { Injectable, InternalServerErrorException, Logger, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
-import { encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
-import { FileUpload } from 'graphql-upload';
-import { SignUpInput, User } from './user.utils';
+import { anotherEncodeToBase64, decodeBase64ToImage, encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
+import { SignInInput, SignUpInput } from './user.utils';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { File } from 'buffer';
 
 @Injectable()
 export class UserService {
@@ -19,9 +21,9 @@ export class UserService {
    /**
     * Creates and return a new user
     * @param data user data to be used to create new user
-    * @returns {Promise<UserModel>}
+    * @returns {Promise<User>}
     */
-   async signUp(signUpInput: SignUpInput): Promise<UserModel> {
+   async signUp(signUpInput: SignUpInput): Promise<User> {
       const salt = await bcrypt.genSalt();
       this.logger.log("hashing password")
       signUpInput.password = await this.hashPassword(signUpInput.password, salt);
@@ -39,15 +41,16 @@ export class UserService {
       }
    }
 
-   async signIn(signInInput: Prisma.UserCreateArgs): Promise<string> {
-      const { email, password } = signInInput.data;
+   async signIn(signInInput: SignInInput): Promise<string> {
+      const { email, password } = signInInput;
       // find user with provided email
       this.logger.log(`Finding with email: ${email}`)
       const user = await this.prisma.user.findUnique({
          where: { email }
-      }) as User;
+      });
+      this.logger.log(`foundUser: ${user.username}`)
 
-      if (user && await user.validatePassword(password)) {
+      if (user && await this.validatePassword(password, user)) {
          this.logger.log(`foundUser: ${user}`)
 
          const payload: JwtPayload = { email: user.email }
@@ -63,9 +66,9 @@ export class UserService {
    /**
     * Updates a user data
     * @param updateUser update user arguments
-    * @returns {Promise<UserModel>}
+    * @returns {Promise<User>}
     */
-   async updateUser(updateUserInput: Prisma.UserUpdateArgs): Promise<UserModel> {
+   async updateUser(updateUserInput: Prisma.UserUpdateArgs): Promise<User> {
 
       return await this.prisma.user.update(updateUserInput);
    }
@@ -73,18 +76,18 @@ export class UserService {
    /**
     * Retrieves a user from the database
     * @param id id of the user to be retrieved
-    * @returns {Promise<UserModel | null>} UserModel || null
+    * @returns {Promise<User | null>} User || null
     */
-   async user(uniqueField: Prisma.UserFindUniqueArgs): Promise<UserModel | null> {
+   async user(uniqueField: Prisma.UserFindUniqueArgs): Promise<User | null> {
       return await this.prisma.user.findUnique(uniqueField);
    }
 
    /**
     * Retrieves users from database
     * @param getManyUsersInput options to retrieve users from database
-    * @returns {Promise<UserModel[]>}
+    * @returns {Promise<User[]>}
     */
-   async users(getManyUsersInput: Prisma.UserFindManyArgs): Promise<UserModel[]> {
+   async users(getManyUsersInput: Prisma.UserFindManyArgs): Promise<User[]> {
       // const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
       const foundUsers = await this.prisma.user.findMany(getManyUsersInput);
       foundUsers.map(user => {
@@ -103,7 +106,7 @@ export class UserService {
       return await this.prisma.user.delete(uniqueField)
    }
 
-   async validateUserByEmail(email: string): Promise<UserModel | null> {
+   async validateUserByEmail(email: string): Promise<User | null> {
       try {
          this.logger.log(`validating user by email: ${email}`)
          const user = await this.prisma.user.findFirst({
@@ -115,15 +118,41 @@ export class UserService {
       }
    }
 
-   async updateProfilePicture(file: FileUpload, currentUser: User) {
-      const profilePic = await encodeImageToBase64(file);
-      return this.prisma.user.update({
+   async updateProfilePicture(image: Express.Multer.File, currentUser: User) {
+      this.logger.log("filename: " + image.mimetype)
+      // const profilePic = await encodeImageToBase64(image);
+      const profilePic = await image.buffer.toString("base64")
+      this.logger.log("file encoded: " + profilePic);
+      const user = await this.prisma.user.update({
          where: { id: currentUser.id },
          data: { profilePic },
       });
+
+      delete user.password; delete user.salt;
+      return user;
+   }
+
+   async getProfilePicture(currentUser: User) {
+      const base64 = await this.prisma.user.findUnique({
+         where: {
+            id: currentUser.id
+         }
+      }).then(user => user.profilePic);
+      this.logger.log("base64 retrieved")
+      // const image = decodeBase64ToImage(base64, 'profilePic');
+      const buffer = Buffer.from(base64);
+      const file = createReadStream(buffer);
+      // await file.pipe(base64,{end: true})
+      // this.logger.log('streaming');
+      return new StreamableFile(file);
    }
 
    async hashPassword(password: string, salt: string): Promise<string> {
       return await bcrypt.hash(password, salt);
+   }
+
+   async validatePassword(password: string, user: User): Promise<boolean> {
+      const hash = await bcrypt.hash(password, user.salt);
+      return hash === user.password;
    }
 }
