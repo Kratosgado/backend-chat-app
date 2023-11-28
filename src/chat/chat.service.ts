@@ -1,17 +1,16 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Conversation, CreateChatInput } from './conversation-utils.input';
-import { Prisma, Conversation as ConversationModel, User } from '@prisma/client';
+import { Prisma, Chat as chatModel, User } from '@prisma/client';
 
 @Injectable()
-export class ConversationService {
-   private logger = new Logger("ConversationService");
+export class ChatService {
+   private logger = new Logger("chatService");
 
    constructor(private readonly prisma: PrismaService) { }
    
-   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<ConversationModel> {
+   async createChat(createChatInput: Prisma.ChatCreateInput, currentUser: User): Promise<chatModel> {
       const { convoName, users } = createChatInput;
-      users.filter(id => id !== currentUser.id);
+      // users.filter(id => id !== currentUser.id);
       try {
          this.logger.log(`Finding Users with Id(s): ${[...users]}`);
          const foundUsers = await this.prisma.user.findMany({
@@ -26,7 +25,7 @@ export class ConversationService {
             this.logger.error("No user with specified Id found");
             throw new NotFoundException("No user with specified Id found");
          }
-         const foundChat = await this.prisma.conversation.findFirst({
+         const foundChat = await this.prisma.chat.findFirst({
             where: {
                users: {
                   every: {
@@ -42,7 +41,7 @@ export class ConversationService {
             throw new NotAcceptableException("Chat already exist for users");
          }
          this.logger.log("Creating chat...")
-         const createdChat = await this.prisma.conversation.create({
+         const createdChat = await this.prisma.chat.create({
             data: {
                convoName,
                users: {
@@ -56,8 +55,8 @@ export class ConversationService {
       }
    }
 
-   async chat({id}: Prisma.ConversationWhereUniqueInput, currentUser: User): Promise<ConversationModel> {
-      const foundChat = await this.prisma.conversation.findUnique({
+   async chat({id}: Prisma.ChatWhereUniqueInput, currentUser: User): Promise<chatModel> {
+      const foundChat = await this.prisma.chat.findUnique({
          where: {
             id: id,
             users: {
@@ -72,8 +71,8 @@ export class ConversationService {
       return foundChat;
    }
 
-   async chats(currentUser: User): Promise<ConversationModel[]>{
-      const foundChats = await this.prisma.conversation.findMany({
+   async chats(currentUser: User): Promise<chatModel[]>{
+      const foundChats = await this.prisma.chat.findMany({
          where: {
             users: {
                some: currentUser

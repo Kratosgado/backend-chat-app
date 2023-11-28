@@ -1,9 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
-import { Prisma, User as UserModel } from '@prisma/client';
+import { Prisma, User, User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import {JwtService} from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
+import { encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
+import { FileUpload } from 'graphql-upload';
 
 @Injectable()
 export class UserService {
@@ -99,6 +101,14 @@ export class UserService {
          throw new UnauthorizedException();
       }
    }
+
+   async updateProfilePicture(file: FileUpload, currentUser: User) {
+      const profilePic = await encodeImageToBase64(file);
+      return this.prisma.user.update({
+         where: { id: currentUser.id },
+         data: { profilePic },
+      });
+   }
    async validatePassword(password: string, user: UserModel): Promise<boolean> {
       const hash = await bcrypt.hash(password, user.salt);
       return hash === user.password;
@@ -107,11 +117,4 @@ export class UserService {
    async hashPassword(password: string, salt: string): Promise<string>{
       return await bcrypt.hash(password, salt);
    }
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
 }
