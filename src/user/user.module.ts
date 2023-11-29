@@ -18,12 +18,12 @@ import { MulterModule } from '@nestjs/platform-express';
         expiresIn: process.env.EXPIRESIN || 27939237
       }
     }),
-    MulterModule.register({
-      dest: './uploads/profilePics'
-    }),
+    // MulterModule.register({
+    //   dest: './uploads/profilePics'
+    // }),
   ],
   controllers: [UserController],
   providers: [UserService, PrismaService, JwtStrategy],
   exports: [PassportModule, JwtModule, UserService]
 })
-export class UserModule {}
+export class UserModule { }

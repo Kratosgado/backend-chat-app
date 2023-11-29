@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { JwtPayload } from './user.auth';
 import { anotherEncodeToBase64, decodeBase64ToImage, encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
-import { SignInInput, SignUpInput } from './user.utils';
+import { GetManyUsersInput, SignInInput, SignUpInput } from './user.utils';
 import { createReadStream, existsSync } from 'fs';
 import { Response } from 'express';
 
@@ -87,9 +87,15 @@ export class UserService {
     * @param getManyUsersInput options to retrieve users from database
     * @returns {Promise<User[]>}
     */
-   async users(getManyUsersInput: Prisma.UserFindManyArgs): Promise<User[]> {
-      // const { skip, take, cursor, where, orderBy } = getManyUsersInput ?? {};
-      const foundUsers = await this.prisma.user.findMany(getManyUsersInput);
+   async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
+      const { skip, take , search, userIds} = getManyUsersInput ?? {};
+      const foundUsers = await this.prisma.user.findMany({
+         where: {
+            username: { contains: search },
+            id: {in: userIds},
+         },
+         take, skip
+      });
       foundUsers.map(user => {
          delete user.password,
             delete user.salt;

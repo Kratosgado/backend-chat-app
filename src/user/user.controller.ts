@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UseInterceptors, UploadedFile, UseGuards, Res, Header } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Prisma, User } from '@prisma/client';
-import { SignInInput, SignUpInput } from './user.utils';
+import { GetManyUsersInput, SignInInput, SignUpInput } from './user.utils';
 import { FileInterceptor } from '@nestjs/platform-express'
 import { GetUser, JwtAuthGaurd } from './user.auth';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,7 +23,7 @@ export class UserController {
   }
 
   @Get("/findall")
-  findAll(@Body() getManyUsersInput?: Prisma.UserFindManyArgs) {
+  findAll(@Body() getManyUsersInput?: GetManyUsersInput) {
     return this.userService.users(getManyUsersInput);
   }
 
