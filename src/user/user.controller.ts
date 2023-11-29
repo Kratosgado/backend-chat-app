@@ -1,41 +1,58 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UseInterceptors, UploadedFile, UseGuards, Res, Header } from '@nestjs/common';
 import { UserService } from './user.service';
-import { SignUpUserDto } from './dto/signup-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { SignInUserDto } from './dto/signin-user.dto';
-import { User } from './entities/user.entity';
+import { Prisma, User } from '@prisma/client';
+import { GetManyUsersInput, SignInInput, SignUpInput } from './user.utils';
+import { FileInterceptor } from '@nestjs/platform-express'
+import { GetUser, JwtAuthGaurd } from './user.auth';
+import { AuthGuard } from '@nestjs/passport';
+import { diskStorage } from 'multer';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Post('/signup')
-  signUp(@Body(ValidationPipe) signUpDto: SignUpUserDto): Promise<User> {
-    return this.userService.signUp(signUpDto);
+  @Post("/signup")
+  signUp(@Body() signUpInput: SignUpInput) {
+    return this.userService.signUp(signUpInput);
   }
 
-  @Post('/signin')
-  signIn(@Body(ValidationPipe) signInDto: SignInUserDto): Promise<{accessToken: string}> {
-    return this.userService.signIn(signInDto);
+  @Post("/signin")
+  signIn(@Body() signInInput: SignInInput) {
+    return this.userService.signIn(signInInput);
   }
 
-  @Get()
-  findAll(): Promise<User[]> {
-    return this.userService.getUsers();
+  @Get("/findall")
+  findAll(@Body() getManyUsersInput?: GetManyUsersInput) {
+    return this.userService.users(getManyUsersInput);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Get('/find/:id')
+  findOne(@Param() id: Prisma.UserFindUniqueArgs) {
+    return this.userService.user(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @Patch('/update')
+  updateUser(@Body() updateUserInput: Prisma.UserUpdateArgs) {
+    return this.userService.updateUser(updateUserInput);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Post('updateProfilePic')
+  @UseGuards(JwtAuthGaurd)
+  @UseInterceptors(FileInterceptor('image'),)
+  updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {
+    return this.userService.updateProfilePicture(image, currentUser)
+  }
+
+  @Get('getProfilePic')
+  @UseGuards(JwtAuthGaurd)
+  // @Header('Content-Type', 'application/json')
+  getProfilePicture(@GetUser() currentUser: User, @Res() res: Response) {
+    return this.userService.readImageFromBase64(currentUser, res);
+  }
+
+  @Delete('/delete/:id')
+  removeUser(@Param() id: Prisma.UserFindUniqueArgs) {
+    return this.userService.deleteUser(id);
   }
 }
