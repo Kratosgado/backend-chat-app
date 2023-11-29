@@ -88,13 +88,19 @@ export class UserService {
     * @returns {Promise<User[]>}
     */
    async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
-      const { skip, take , search, userIds} = getManyUsersInput ?? {};
+      const { skip, take, cursor, search, userIds } = getManyUsersInput ?? {};
       const foundUsers = await this.prisma.user.findMany({
          where: {
             username: { contains: search },
-            id: {in: userIds},
+            AND: {
+               id: {
+                  in: userIds
+               }
+            }
          },
-         take, skip
+         include: {
+            conversations: !userIds // include conversation when we are not just interested in the users
+         }
       });
       foundUsers.map(user => {
          delete user.password,
@@ -108,7 +114,7 @@ export class UserService {
     * @param id id of the user to be deleted
     * @returns void
     */
-   async deleteUser(uniqueField: Prisma.UserFindUniqueArgs) {
+   async deleteUser(uniqueField: Prisma.UserDeleteArgs) {
       return await this.prisma.user.delete(uniqueField)
    }
 

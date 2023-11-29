@@ -11,14 +11,14 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  username          String?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String?
   profilePic    String?
   password      String
   salt          String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   posts         Post[]
   conversations Chat[]
   Message       Message[]
@@ -26,10 +26,14 @@ model User {
 }
 
 model Picture {
-  id     String @id @default(cuid())
-  url    String
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  id        String    @id @default(cuid())
+  url       String
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  chat      Chat      @relation(fields: [chatId], references: [id])
+  chatId    String
+  messageId String?    @unique()
+  Message   Message?
 }
 
 model Post {
@@ -50,15 +54,18 @@ model Chat {
   updatedAt DateTime  @updatedAt
   messages  Message[]
   users     User[]
+  pictures  Picture[]
 }
 
 model Message {
-  id             String        @id @default(cuid())
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   content        String
-  conversation   Chat? @relation(fields: [conversationId], references: [id])
+  picture        Picture?  @relation(references: [messageId], fields: [pictureId])
+  pictureId      String?   @unique
+  conversation   Chat?    @relation(fields: [conversationId], references: [id])
   conversationId String?
-  sender         User?         @relation(fields: [senderId], references: [id])
+  sender         User?    @relation(fields: [senderId], references: [id])
   senderId       String?
 }

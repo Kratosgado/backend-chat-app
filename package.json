@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "gen": "prisma generate",
     "mig:dev": "prisma migrate dev",
-    "mig:reset": "prisma migrate reset"
+    "mig:reset": "prisma migrate reset",
+    "prisma:f": "prisma format"
 
   },
   "dependencies": {
