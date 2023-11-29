@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './config/typeorm.config';
 import { UserModule } from './user/user.module';
-import { ConversationModule } from './conversation/conversation.module';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
+import { PrismaService } from './prisma.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
-    UserModule,
-    ConversationModule
-  ],
+  providers: [PrismaService, UserService],
+  controllers: [UserController],
+  imports: [UserModule],
 })
 export class AppModule {}

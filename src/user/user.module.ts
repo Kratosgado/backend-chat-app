@@ -1,31 +1,29 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserController } from './user.controller';
-import { UserRepository } from './user.repository';
+import { PrismaService } from 'src/prisma.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './user.auth';
+import { UserController } from './user.controller';
+import { MulterModule } from '@nestjs/platform-express';
 
-import * as config from 'config'
-import { JwtStrategy } from './jwt.strategy';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-
-const jwtConfig = config.get('jwt');
 @Module({
   imports: [
     PassportModule.register({
       defaultStrategy: 'jwt'
     }),
     JwtModule.register({
-      secret: jwtConfig.secret,
+      secret: process.env.JWTSECRET,
       signOptions: {
-        expiresIn: jwtConfig.expiresIn,
+        expiresIn: process.env.EXPIRESIN || 27939237
       }
     }),
-    TypeOrmModule.forFeature([User])
+    // MulterModule.register({
+    //   dest: './uploads/profilePics'
+    // }),
   ],
   controllers: [UserController],
-  providers: [UserService,JwtStrategy, UserRepository],
-  exports: [PassportModule, JwtStrategy]
+  providers: [UserService, PrismaService, JwtStrategy],
+  exports: [PassportModule, JwtModule, UserService]
 })
-export class UserModule {}
+export class UserModule { }
