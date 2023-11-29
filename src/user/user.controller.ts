@@ -5,6 +5,8 @@ import { SignInInput, SignUpInput } from './user.utils';
 import { FileInterceptor } from '@nestjs/platform-express'
 import { GetUser, JwtAuthGaurd } from './user.auth';
 import { AuthGuard } from '@nestjs/passport';
+import { diskStorage } from 'multer';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -37,7 +39,7 @@ export class UserController {
 
   @Post('updateProfilePic')
   @UseGuards(JwtAuthGaurd)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'),)
   updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {
     return this.userService.updateProfilePicture(image, currentUser)
   }
@@ -45,8 +47,8 @@ export class UserController {
   @Get('getProfilePic')
   @UseGuards(JwtAuthGaurd)
   // @Header('Content-Type', 'application/json')
-  getProfilePicture(@GetUser() currentUser: User) {
-    return this.userService.getProfilePicture(currentUser);
+  getProfilePicture(@GetUser() currentUser: User, @Res() res: Response) {
+    return this.userService.readImageFromBase64(currentUser, res);
   }
 
   @Delete('/delete/:id')
