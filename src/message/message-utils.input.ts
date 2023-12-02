@@ -3,6 +3,7 @@ import {Chat, Message as MessageModel, User} from '@prisma/client'
 
 
 export class Message implements MessageModel{
+   pictureId: string;
    id: string;
    content: string;
    conversation?: Chat[]
