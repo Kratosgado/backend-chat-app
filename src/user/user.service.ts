@@ -98,9 +98,9 @@ export class UserService {
                }
             }
          },
-         include: {
-            conversations: !userIds // include conversation when we are not just interested in the users
-         }
+         // include: {
+         //    conversations: false // include conversation when we are not just interested in the users
+         // }
       });
       foundUsers.map(user => {
          delete user.password,

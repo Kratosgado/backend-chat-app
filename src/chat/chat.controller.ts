@@ -16,18 +16,18 @@ export class ChatController {
 
   @Post('/create')
   createChat(
-    @Body("createChatInput",) createChatInput: CreateChatInput,
+    @Body() createChatInput: CreateChatInput,
     @GetUser() currentUser: User
   ) {
     return this.chatService.createChat(createChatInput, currentUser)
   }
 
-  @Get('/id')
+  @Get('/:id')
   chat(
     @Param("id") id: string,
     @GetUser() currentUser: User
   ) {
-    return this.chatService.chat({ id }, currentUser);
+    return this.chatService.chat(id, currentUser);
   }
 
   @Get('/')

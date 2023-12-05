@@ -1,15 +1,15 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma, Chat as chatModel, User } from '@prisma/client';
+import { Prisma, User, Chat } from '@prisma/client';
 import { CreateChatInput } from './chat.utils';
 
 @Injectable()
 export class ChatService {
-   private logger = new Logger("chatService");
+   private logger = new Logger("ChatService");
 
    constructor(private readonly prisma: PrismaService) { }
-   
-   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<chatModel> {
+
+   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<Chat> {
       const { convoName, users } = createChatInput;
       // users.filter(id => id !== currentUser.id);
       try {
@@ -21,7 +21,7 @@ export class ChatService {
                }
             }
          });
-         
+
          if (!foundUsers || foundUsers.length === 0) {
             this.logger.error("No user with specified Id found");
             throw new NotFoundException("No user with specified Id found");
@@ -56,34 +56,58 @@ export class ChatService {
       }
    }
 
-   async chat({id}: Prisma.ChatWhereUniqueInput, currentUser: User): Promise<chatModel> {
-      const foundChat = await this.prisma.chat.findUnique({
-         where: {
-            id: id,
-            users: {
-               some: currentUser
+   async chat(id: string, currentUser: User): Promise<Chat> {
+      try {
+         const foundChat = await this.prisma.chat.findUnique({
+            where: {
+               id: id,
+               users: {
+                  some: currentUser
+               }
+            },
+            include: {
+               users: {
+                  select: {
+                     id: true,
+                     email: true,
+                     username: true
+                  }
+               }
             }
-         },
-         include: {
-            users: true
-         }
-      });
-      foundChat.convoName = foundChat.users.find(user => user !== currentUser).username;
-      return foundChat;
+         });
+         foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).username;
+         return foundChat;
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
    }
 
-   async chats(currentUser: User): Promise<chatModel[]>{
-      const foundChats = await this.prisma.chat.findMany({
-         where: {
-            users: {
-               some: currentUser
-            }
-         },
-         include: {
-            users: true
-         }
-      });
-      foundChats.map((chat) => chat.convoName = chat.users.find(user => user !== currentUser).username)
-      return foundChats;
+   async chats(currentUser: User): Promise<Chat[]> {
+      try {
+         this.logger.log("finding all chats of " + currentUser.username);
+         const foundChats = await this.prisma.chat.findMany({
+            where: {
+               users: {
+                  some: currentUser
+               }
+            },
+            include: {
+               users: {
+                  select: {
+                     id: true,
+                     email: true,
+                     username: true
+                  }
+               }
+            },
+         });
+         this.logger.log("chats found: " + foundChats.length)
+         foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).username)
+         return foundChats;
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
    }
 }
