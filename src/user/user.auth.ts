@@ -1,11 +1,21 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, createParamDecorator } from "@nestjs/common";
+import { MiddlewareConsumer, ExecutionContext, Injectable, UnauthorizedException, createParamDecorator, Type } from "@nestjs/common";
 import {AuthGuard, PassportStrategy} from '@nestjs/passport'
 
 import {Strategy, ExtractJwt} from 'passport-jwt'
 import { UserService } from "./user.service";
-import { GqlExecutionContext } from "@nestjs/graphql";
-import { Observable } from "rxjs";
+import { Socket } from "socket.io";
+import { ExtendedError } from "socket.io/dist/namespace";
+import { Prisma } from "@prisma/client";
 
+@Injectable()
+export class AuthMiddleware  {
+   resolve(): (socket: Socket, next: (err?: ExtendedError) => void) => void {
+      return (socket: Socket, next: (err?: ExtendedError) => void) => {
+         
+      }
+   }
+   
+}
 @Injectable()
 export class JwtAuthGaurd extends AuthGuard('jwt') {}
 

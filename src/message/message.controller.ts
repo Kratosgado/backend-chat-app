@@ -14,7 +14,7 @@ export class MessageController {
    @Post('/send')
    sendMessage(
       @GetUser() currentUser: User,
-      @Body('sendMessageInput') sendMessageInput: SendMessageInput
+      @Body() sendMessageInput: SendMessageInput
    ) {
       return this.messageService.sendMessage(sendMessageInput, currentUser);
    }

@@ -99,6 +99,13 @@ export class ChatService {
                      email: true,
                      username: true
                   }
+               },
+               messages: {
+                  select: {
+                     content: true
+                  },
+                  take: 1,
+                  orderBy: { "createdAt": "desc" }
                }
             },
          });
