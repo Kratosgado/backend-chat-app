@@ -4,8 +4,7 @@ import { ChatService } from './chat.service';
 import { Prisma, User } from '@prisma/client';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
-import { CreateChatDto } from './chat.utils';
-import { SendMessageDto } from 'src/message/message-utils.input';
+import { CreateChatDto, SendMessageDto } from './chat.utils';
 
 /**
  * Handles Chat

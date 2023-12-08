@@ -1,5 +1,5 @@
 import { Chat as ConversationModel, Message, User } from '@prisma/client'
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class Chat implements ConversationModel {
    id: string;
@@ -22,4 +22,13 @@ export class CreateChatDto {
 export class RemoveUserInput {
    conversationId: string;
    userIds?: string[];
+}
+
+
+export class SendMessageDto {
+   @IsNotEmpty()
+   content: string;
+
+   @IsNotEmpty()
+   chatId: string;
 }
