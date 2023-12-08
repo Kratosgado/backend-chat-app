@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UseInterceptors, UploadedFile, UseGuards, Res, Header } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Prisma, User } from '@prisma/client';
-import { GetManyUsersInput, SignInInput, SignUpInput } from './user.utils';
+import { GetManyUsersInput } from './user.utils';
 import { FileInterceptor } from '@nestjs/platform-express'
-import { GetUser, JwtAuthGaurd } from './user.auth';
+import { GetUser, JwtAuthGaurd } from '../auth/user.auth';
 import { AuthGuard } from '@nestjs/passport';
 import { diskStorage } from 'multer';
 import { Response } from 'express';
@@ -11,16 +11,6 @@ import { Response } from 'express';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
-
-  @Post("/signup")
-  signUp(@Body() signUpInput: SignUpInput) {
-    return this.userService.signUp(signUpInput);
-  }
-
-  @Post("/signin")
-  signIn(@Body() signInInput: SignInInput) {
-    return this.userService.signIn(signInInput);
-  }
 
   @Get("/findall")
   findAll(@Body() getManyUsersInput?: GetManyUsersInput) {

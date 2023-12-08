@@ -3,9 +3,9 @@ import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { JwtPayload } from './user.auth';
+import { JwtPayload } from '../auth/user.auth';
 import { anotherEncodeToBase64, decodeBase64ToImage, encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
-import { GetManyUsersInput, SignInInput, SignUpInput } from './user.utils';
+import { GetManyUsersInput } from './user.utils';
 import { createReadStream, existsSync } from 'fs';
 import { Response } from 'express';
 
@@ -15,53 +15,8 @@ export class UserService {
    private logger = new Logger("UserService");
    constructor(
       private readonly prisma: PrismaService,
-      private jwtService: JwtService
    ) { }
 
-   /**
-    * Creates and return a new user
-    * @param data user data to be used to create new user
-    * @returns {Promise<User>}
-    */
-   async signUp(signUpInput: SignUpInput): Promise<User> {
-      const salt = await bcrypt.genSalt();
-      this.logger.log("hashing password")
-      signUpInput.password = await this.hashPassword(signUpInput.password, salt);
-
-      try {
-         this.logger.log("creating user...")
-         const createdUser = await this.prisma.user.create({ data: { ...signUpInput, salt } });
-         delete createdUser.password
-         delete createdUser.salt
-
-         return createdUser
-      } catch (error) {
-         this.logger.error(error, error.stack);
-         throw new InternalServerErrorException();
-      }
-   }
-
-   async signIn(signInInput: SignInInput): Promise<string> {
-      const { email, password } = signInInput;
-      // find user with provided email
-      this.logger.log(`Finding with email: ${email}`)
-      const user = await this.prisma.user.findUnique({
-         where: { email }
-      });
-      this.logger.log(`foundUser: ${user.username}`)
-
-      if (user && await this.validatePassword(password, user)) {
-         this.logger.log(`foundUser: ${user}`)
-
-         const payload: JwtPayload = { email: user.email }
-         const accessToken = this.jwtService.sign(payload)
-
-         this.logger.log(`accessToken: ${accessToken}`);
-         return accessToken
-      }
-      throw new UnauthorizedException();
-      // const username = await this.validateUserPassword(signInInput);
-   }
 
    /**
     * Updates a user data
@@ -78,6 +33,7 @@ export class UserService {
     * @param id id of the user to be retrieved
     * @returns {Promise<User | null>} User || null
     */
+
    async user(uniqueField: Prisma.UserFindUniqueArgs): Promise<User | null> {
       return await this.prisma.user.findUnique(uniqueField);
    }
@@ -116,18 +72,6 @@ export class UserService {
     */
    async deleteUser(uniqueField: Prisma.UserDeleteArgs) {
       return await this.prisma.user.delete(uniqueField)
-   }
-
-   async validateUserByEmail(email: string): Promise<User | null> {
-      try {
-         this.logger.log(`validating user by email: ${email}`)
-         const user = await this.prisma.user.findFirst({
-            where: { email }
-         })
-         return user || null;
-      } catch (error) {
-         throw new UnauthorizedException();
-      }
    }
 
    async updateProfilePicture(image: Express.Multer.File, currentUser: User) {
@@ -170,18 +114,6 @@ export class UserService {
       }
    }
 
-   readFromFile(filepath: string): StreamableFile {
-      try {
-         if (!existsSync(filepath)) {
-            throw new NotFoundException()
-         }
-         const fileStream = createReadStream(filepath);
-         return new StreamableFile(fileStream);
-      } catch (error) {
-         throw error;
-      }
-   }
-
    async getProfilePicture(currentUser: User) {
       const base64 = await this.prisma.user.findUnique({
          where: {
@@ -195,14 +127,5 @@ export class UserService {
       // await file.pipe(base64,{end: true})
       // this.logger.log('streaming');
       return new StreamableFile(file);
-   }
-
-   async hashPassword(password: string, salt: string): Promise<string> {
-      return await bcrypt.hash(password, salt);
-   }
-
-   async validatePassword(password: string, user: User): Promise<boolean> {
-      const hash = await bcrypt.hash(password, user.salt);
-      return hash === user.password;
    }
 }

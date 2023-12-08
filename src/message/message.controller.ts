@@ -1,7 +1,7 @@
 import { MessageService } from './message.service';
 import { Message, SendMessageInput } from './message-utils.input';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { GetUser, JwtAuthGaurd } from 'src/user/user.auth';
+import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
 import { User } from '@prisma/client';
 import { ConnectedSocket } from '@nestjs/websockets';
 

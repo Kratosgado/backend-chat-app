@@ -13,22 +13,6 @@ export class GetManyUsersInput {
    userIds?: string[];
 }
 
-export class SignUpInput {
-   @IsEmail()
-   email: string;
-
-   @IsString()
-   @MinLength(4)
-   @MaxLength(20)
-   username?: string;
-
-   @IsStrongPassword({ minLength: 6 })
-   password: string;
-}
-
-export class SignInInput extends PartialType(SignUpInput) {
-}
-
 export class UpdateUserInput {
    /// id of the user
    id: string;
@@ -36,7 +20,8 @@ export class UpdateUserInput {
    @IsEmail()
    email?: string;
    username?: string;
-   password?: string;
+  password?: string;
+  
 }
 
 export function IsImage(validationOptions?: ValidationOptions) {

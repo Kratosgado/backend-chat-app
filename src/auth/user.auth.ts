@@ -1,23 +1,23 @@
 import { MiddlewareConsumer, ExecutionContext, Injectable, UnauthorizedException, createParamDecorator, Type } from "@nestjs/common";
-import {AuthGuard, PassportStrategy} from '@nestjs/passport'
+import { AuthGuard, PassportStrategy } from '@nestjs/passport'
 
-import {Strategy, ExtractJwt} from 'passport-jwt'
-import { UserService } from "./user.service";
+import { Strategy, ExtractJwt } from 'passport-jwt'
+import { UserService } from "../user/user.service";
 import { Socket } from "socket.io";
 import { ExtendedError } from "socket.io/dist/namespace";
-import { Prisma } from "@prisma/client";
+import { AuthService } from "./auth.service";
 
 @Injectable()
-export class AuthMiddleware  {
+export class AuthMiddleware {
    resolve(): (socket: Socket, next: (err?: ExtendedError) => void) => void {
       return (socket: Socket, next: (err?: ExtendedError) => void) => {
-         
+
       }
    }
-   
+
 }
 @Injectable()
-export class JwtAuthGaurd extends AuthGuard('jwt') {}
+export class JwtAuthGaurd extends AuthGuard('jwt') { }
 
 export interface JwtPayload {
    email: string;
@@ -25,7 +25,7 @@ export interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-   constructor(private readonly userService: UserService) {
+   constructor(private readonly authService: AuthService) {
       super({
          jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
          secretOrKey: process.env.JWTSECRET
@@ -34,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
    async validate(payload: JwtPayload) {
       console.log("payload", payload);
-      const user =  await this.userService.validateUserByEmail(payload.email);
+      const user = await this.authService.validateUserByEmail(payload.email);
       if (!user) return new UnauthorizedException();
       console.log(`validated user: ${user.id}`)
       return user;

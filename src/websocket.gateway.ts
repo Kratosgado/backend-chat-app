@@ -2,7 +2,7 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SendMessageInput } from './message/message-utils.input';
-import { GetUser, JwtAuthGaurd } from './user/user.auth';
+import { GetUser, JwtAuthGaurd } from './auth/user.auth';
 import { User } from '@prisma/client';
 import { MessageService } from './message/message.service';
 
