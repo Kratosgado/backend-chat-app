@@ -7,7 +7,7 @@ import { ChatService } from 'src/chat/chat.service';
 import { ChatGateway } from 'src/websocket.gateway';
 import { Socket } from 'socket.io';
 
-@Injectable()
+// @Injectable()
 export class MessageService {
    private readonly logger = new Logger("MessageService");
    constructor(
@@ -16,22 +16,25 @@ export class MessageService {
       private readonly chatGateWay: ChatGateway
    ) { }
 
-   async sendMessage(sendMessageInput: SendMessageInput, currentUser: User, client: Socket) {
+   async sendMessage(sendMessageInput: SendMessageInput, currentUser: User,
+      // client: Socket
+   ) {
       try {
          const { content, conversationId } = sendMessageInput;
 
-         this.logger.log("saving message to conversation")
+         this.logger.log("saving message to conversation. Message: " + content)
          const message = await this.prisma.message.create({
             data: {
-               content,
+               content: content,
                senderId: currentUser.id,
-               conversationId
+               conversationId: conversationId
             }
          });
-         const users = await this.prisma.chat.findUnique({
-            where: { id: conversationId },
-            include: { users: true }
-         }).then((chat) => chat.users)
+         this.logger.log(`message saved with content: ${message.content}`)
+         // const users = await this.prisma.chat.findUnique({
+         //    where: { id: conversationId },
+         //    include: { users: true }
+         // }).then((chat) => chat.users)
 
 
          this.chatGateWay.server.emit("newMessage", message);

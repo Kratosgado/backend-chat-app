@@ -10,8 +10,8 @@ import { MessageService } from './message/message.service';
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    private readonly logger = new Logger("ChatGateway")
-   constructor(private readonly messageService: MessageService){}
-   
+   private readonly messageService: MessageService;
+
    @WebSocketServer() server: Server;
 
    handleConnection(client: Socket, ...args: any[]) {
@@ -30,7 +30,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       @GetUser() user: User
    ) {
       this.logger.log(`Recieved message from client ${client.id}: ${sendMessageInput.content}`);
-      this.messageService.sendMessage(sendMessageInput, user, client);
-      return sendMessageInput.content
+      return this.messageService.sendMessage(sendMessageInput, user);
+
    }
 }
