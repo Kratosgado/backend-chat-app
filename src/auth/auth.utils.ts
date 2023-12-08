@@ -1,7 +1,7 @@
-import { PartialType } from "@nestjs/mapped-types";
+import { OmitType, PartialType } from "@nestjs/mapped-types";
 import { IsEmail, IsString, MinLength, MaxLength, IsStrongPassword } from "class-validator";
 
-export class SignUpInput {
+export class SignUpDto {
    @IsEmail()
    email: string;
 
@@ -14,5 +14,5 @@ export class SignUpInput {
    password: string;
 }
 
-export class SignInInput extends PartialType(SignUpInput) {
+export class SignInDto extends OmitType(SignUpDto, ["username"]) {
 }

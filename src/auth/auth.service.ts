@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt'
 import { PrismaService } from 'src/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/auth/user.auth';
-import { SignUpInput, SignInInput } from './auth.utils';
+import { SignInDto, SignUpDto } from './auth.utils';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
     * @param data user data to be used to create new user
     * @returns {Promise<User>}
     */
-   async signUp(signUpInput: SignUpInput): Promise<User> {
+   async signUp(signUpInput: SignUpDto): Promise<User> {
       const salt = await bcrypt.genSalt();
       this.logger.log("hashing password")
       signUpInput.password = await this.hashPassword(signUpInput.password, salt);
@@ -38,7 +38,7 @@ export class AuthService {
    }
 
 
-   async signIn(signInInput: SignInInput): Promise<string> {
+   async login(signInInput: SignInDto): Promise<string> {
       const { email, password } = signInInput;
       // find user with provided email
       this.logger.log(`Finding with email: ${email}`)

@@ -2,9 +2,9 @@ import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { ChatService } from './chat.service';
 
 import { Prisma, User } from '@prisma/client';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
-import { CreateChatInput } from './chat.utils';
+import { CreateChatDto } from './chat.utils';
 
 /**
  * Handles Chat
@@ -16,10 +16,10 @@ export class ChatController {
 
   @Post('/create')
   createChat(
-    @Body() createChatInput: CreateChatInput,
+    @Body() createChatDto: CreateChatDto,
     @GetUser() currentUser: User
   ) {
-    return this.chatService.createChat(createChatInput, currentUser)
+    return this.chatService.createChat(createChatDto, currentUser)
   }
 
   @Get('/:id')
@@ -35,5 +35,10 @@ export class ChatController {
     @GetUser() currentUser: User
   ) {
     return this.chatService.chats(currentUser);
+  }
+
+  @Delete('/delete')
+  deleteChat(@Param() id: string) {
+    this.chatService.deleteChat(id);
   }
 }

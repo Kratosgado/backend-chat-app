@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
-import { Message, SendMessageInput } from './message-utils.input';
+import { SendMessageDto } from './message-utils.input';
 import { User } from '@prisma/client';
 import { ChatService } from 'src/chat/chat.service';
 import { ChatGateway } from 'src/websocket.gateway';
@@ -16,18 +16,18 @@ export class MessageService {
       private readonly chatGateWay: ChatGateway
    ) { }
 
-   async sendMessage(sendMessageInput: SendMessageInput, currentUser: User,
+   async sendMessage(sendMessageDto: SendMessageDto, currentUser: User,
       // client: Socket
    ) {
       try {
-         const { content, conversationId } = sendMessageInput;
+         const { content, chatId } = sendMessageDto;
 
          this.logger.log("saving message to conversation. Message: " + content)
          const message = await this.prisma.message.create({
             data: {
                content: content,
                senderId: currentUser.id,
-               conversationId: conversationId
+               chatId
             }
          });
          this.logger.log(`message saved with content: ${message.content}`)

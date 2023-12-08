@@ -1,20 +1,12 @@
 import { InputType, ObjectType } from "@nestjs/graphql";
-import {Chat, Message as MessageModel, User} from '@prisma/client'
+import { Chat, Message as MessageModel, User } from '@prisma/client'
+import { IsNotEmpty } from "class-validator";
 
 
-export class Message implements MessageModel{
-   pictureId: string;
-   id: string;
+export class SendMessageDto {
+   @IsNotEmpty()
    content: string;
-   conversation?: Chat[]
-   conversationId: string;
-   user?: User[]
-   senderId: string;
-   createdAt: Date;
-   updatedAt: Date;
-}
 
-export class SendMessageInput{
-   content: string;
-   conversationId: string;
+   @IsNotEmpty()
+   chatId: string;
 }

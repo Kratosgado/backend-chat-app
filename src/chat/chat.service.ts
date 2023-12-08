@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, User, Chat } from '@prisma/client';
-import { CreateChatInput } from './chat.utils';
+import { CreateChatDto } from './chat.utils';
 
 @Injectable()
 export class ChatService {
@@ -9,15 +9,15 @@ export class ChatService {
 
    constructor(private readonly prisma: PrismaService) { }
 
-   async createChat(createChatInput: CreateChatInput, currentUser: User): Promise<Chat> {
-      const { convoName, users } = createChatInput;
+   async createChat(createChatDto: CreateChatDto, currentUser: User): Promise<Chat> {
+      const { convoName, userIds } = createChatDto;
       // users.filter(id => id !== currentUser.id);
       try {
-         this.logger.log(`Finding Users with Id(s): ${[...users]}`);
+         this.logger.log(`Finding Users with Id(s): ${[...userIds]}`);
          const foundUsers = await this.prisma.user.findMany({
             where: {
                id: {
-                  in: users
+                  in: userIds
                }
             }
          });
@@ -26,6 +26,7 @@ export class ChatService {
             this.logger.error("No user with specified Id found");
             throw new NotFoundException("No user with specified Id found");
          }
+         // check if chat already exists
          const foundChat = await this.prisma.chat.findFirst({
             where: {
                users: {
@@ -89,7 +90,9 @@ export class ChatService {
          const foundChats = await this.prisma.chat.findMany({
             where: {
                users: {
-                  some: currentUser
+                  some: {
+                     id: currentUser.id
+                  }
                }
             },
             include: {
@@ -112,6 +115,15 @@ export class ChatService {
          this.logger.log("chats found: " + foundChats.length)
          foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).username)
          return foundChats;
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
+   }
+
+   async deleteChat(id: string) {
+      try {
+         await this.prisma.chat.delete({ where: { id } });
       } catch (error) {
          this.logger.error(error);
          return error;

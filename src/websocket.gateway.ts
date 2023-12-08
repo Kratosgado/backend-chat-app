@@ -1,7 +1,7 @@
 import { Logger, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SendMessageInput } from './message/message-utils.input';
+import { SendMessageDto } from './message/message-utils.input';
 import { GetUser, JwtAuthGaurd } from './auth/user.auth';
 import { User } from '@prisma/client';
 import { MessageService } from './message/message.service';
@@ -19,6 +19,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    };
 
    handleDisconnect(client: Socket) {
+
       this.logger.log(`Client disconnected: ${client.id}`)
    };
 
@@ -26,7 +27,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    @UseGuards(JwtAuthGaurd)
    handleSendMessage(
       @ConnectedSocket() client: Socket,
-      @MessageBody() sendMessageInput: SendMessageInput,
+      @MessageBody() sendMessageInput: SendMessageDto,
       @GetUser() user: User
    ) {
       this.logger.log(`Recieved message from client ${client.id}: ${sendMessageInput.content}`);

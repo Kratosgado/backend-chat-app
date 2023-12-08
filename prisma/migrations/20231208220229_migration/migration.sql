@@ -53,7 +53,7 @@ CREATE TABLE "Message" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "content" TEXT NOT NULL,
     "pictureId" TEXT,
-    "conversationId" TEXT,
+    "chatId" TEXT,
     "senderId" TEXT,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
@@ -93,7 +93,7 @@ ALTER TABLE "Post" ADD CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") 
 ALTER TABLE "Message" ADD CONSTRAINT "Message_pictureId_fkey" FOREIGN KEY ("pictureId") REFERENCES "Picture"("messageId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Chat"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

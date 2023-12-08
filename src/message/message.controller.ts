@@ -1,5 +1,5 @@
 import { MessageService } from './message.service';
-import { Message, SendMessageInput } from './message-utils.input';
+import {  SendMessageDto } from './message-utils.input';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
 import { User } from '@prisma/client';
@@ -15,7 +15,7 @@ export class MessageController {
    @Post('/send')
    sendMessage(
       @GetUser() currentUser: User,
-      @Body() sendMessageInput: SendMessageInput,
+      @Body() sendMessageInput: SendMessageDto,
       // @ConnectedSocket() client: Socket
    ) {
       return this.messageService.sendMessage(sendMessageInput, currentUser);

@@ -64,8 +64,8 @@ model Message {
   content        String
   picture        Picture? @relation(references: [messageId], fields: [pictureId])
   pictureId      String?  @unique
-  conversation   Chat?    @relation(fields: [conversationId], references: [id])
-  conversationId String?
+  chat   Chat?    @relation(fields: [chatId], references: [id])
+  chatId String?
   sender         User?    @relation(fields: [senderId], references: [id])
   senderId       String?
 }
