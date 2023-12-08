@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
 import { SendMessageDto } from './message-utils.input';
@@ -22,12 +22,19 @@ export class MessageService {
       try {
          const { content, chatId } = sendMessageDto;
 
+         this.logger.log(`fingind chat with id: ${chatId}`);
          this.logger.log("saving message to conversation. Message: " + content)
+         const foundChat = await this.prisma.chat.findUnique({
+            where: { id: chatId },
+         });
+         if (!foundChat) throw new NotFoundException("Chat Not Found");
+
+
          const message = await this.prisma.message.create({
             data: {
-               content: content,
+               content,
                senderId: currentUser.id,
-               chatId
+               chatId: chatId
             }
          });
          this.logger.log(`message saved with content: ${message.content}`)

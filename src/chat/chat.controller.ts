@@ -5,6 +5,7 @@ import { Prisma, User } from '@prisma/client';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
 import { CreateChatDto } from './chat.utils';
+import { SendMessageDto } from 'src/message/message-utils.input';
 
 /**
  * Handles Chat
@@ -40,5 +41,10 @@ export class ChatController {
   @Delete('/delete')
   deleteChat(@Param() id: string) {
     this.chatService.deleteChat(id);
+  }
+
+  @Post('sendMessage')
+  sendMessage(@Body() sendMessageDto: SendMessageDto, @GetUser() currentUser) {
+    this.chatService.sendMessage(sendMessageDto, currentUser);
   }
 }
