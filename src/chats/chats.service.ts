@@ -2,14 +2,12 @@ import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, User, Chat } from '@prisma/client';
 import { CreateChatDto, SendMessageDto } from './chat.utils';
-import { ChatGateway } from 'src/websocket.gateway';
 
 @Injectable()
 export class ChatsService {
    private logger = new Logger("ChatsService");
 
    constructor(private readonly prisma: PrismaService,
-      private readonly chatGateway: ChatGateway,
    ) { }
 
    async createChat(createChatDto: CreateChatDto, currentUser: User): Promise<Chat> {
@@ -154,7 +152,7 @@ export class ChatsService {
          // }).then((chat) => chat.users)
 
 
-         this.chatGateway.server.emit("newMessage", message);
+         // this.chatGateway.server.emit("newMessage", message);
          return `message sent: content = ${message.content}`
       } catch (error) {
          this.logger.log(error)
