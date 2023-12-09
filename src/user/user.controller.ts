@@ -21,6 +21,12 @@ export class UserController {
     return this.userService.user(id);
   }
 
+  @Get('/me')
+  @UseGuards(JwtAuthGaurd)
+  me(@GetUser() currentUser: User) {
+    return currentUser;
+  }
+
   @Patch('/update')
   updateUser(@Body() updateUserInput: Prisma.UserUpdateArgs) {
     return this.userService.updateUser(updateUserInput);

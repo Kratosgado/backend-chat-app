@@ -1,12 +1,12 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, User, Chat } from '@prisma/client';
-import { CreateChatDto, SendMessageDto } from '../chats/chat.utils';
+import { CreateChatDto, SendMessageDto } from './chat.utils';
 import { ChatGateway } from 'src/websocket.gateway';
 
 @Injectable()
-export class ChatService {
-   private logger = new Logger("ChatService");
+export class ChatsService {
+   private logger = new Logger("ChatsService");
 
    constructor(private readonly prisma: PrismaService,
       private readonly chatGateway: ChatGateway,
