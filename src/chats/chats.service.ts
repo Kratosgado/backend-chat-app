@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, User, Chat } from '@prisma/client';
-import { CreateChatDto, SendMessageDto } from './chat.utils';
+import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
 
 @Injectable()
 export class ChatsService {

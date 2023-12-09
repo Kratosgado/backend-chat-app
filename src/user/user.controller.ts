@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UseGuards, Res } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Prisma, User } from '@prisma/client';
-import { GetManyUsersInput } from './user.utils';
+import { GetManyUsersInput } from '../resources/utils/user.utils';
 import { FileInterceptor } from '@nestjs/platform-express'
-import { GetUser, JwtAuthGaurd } from '../auth/user.auth';
+import { JwtAuthGaurd } from '../resources/utils/user.auth';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import { GetUser } from 'src/resources/decorators/getUser.decorator';
 
 @Controller('user')
 export class UserController {

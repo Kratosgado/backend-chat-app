@@ -2,20 +2,11 @@ import { MiddlewareConsumer, ExecutionContext, Injectable, UnauthorizedException
 import { AuthGuard, PassportStrategy } from '@nestjs/passport'
 
 import { Strategy, ExtractJwt } from 'passport-jwt'
-import { UserService } from "../user/user.service";
+import { UserService } from "../../user/user.service";
 import { Socket } from "socket.io";
 import { ExtendedError } from "socket.io/dist/namespace";
-import { AuthService } from "./auth.service";
+import { AuthService } from "../../auth/auth.service";
 
-@Injectable()
-export class AuthMiddleware {
-   resolve(): (socket: Socket, next: (err?: ExtendedError) => void) => void {
-      return (socket: Socket, next: (err?: ExtendedError) => void) => {
-
-      }
-   }
-
-}
 @Injectable()
 export class JwtAuthGaurd extends AuthGuard('jwt') { }
 
@@ -41,9 +32,3 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    }
 }
 
-export const GetUser = createParamDecorator(
-   (data: unknown, ctx: ExecutionContext) => {
-      const request = ctx.switchToHttp().getRequest();
-      return request.user
-   }
-)

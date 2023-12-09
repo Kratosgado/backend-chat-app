@@ -3,7 +3,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma.service';
-import { RedisIoAdapter } from './chats/redis.adapter';
+import { RedisIoAdapter } from './resources/adapters/redis.adapter';
 
 async function bootstrap() {
 

@@ -1,11 +1,7 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { JwtService } from '@nestjs/jwt'
-import * as bcrypt from 'bcrypt'
-import { JwtPayload } from '../auth/user.auth';
-import { anotherEncodeToBase64, decodeBase64ToImage, encodeImageToBase64 } from 'src/utils/encodeImageToBase64.util';
-import { GetManyUsersInput } from './user.utils';
+import { GetManyUsersInput } from '../resources/utils/user.utils';
 import { createReadStream, existsSync } from 'fs';
 import { Response } from 'express';
 

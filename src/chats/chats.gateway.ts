@@ -1,10 +1,11 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
-import { CreateChatDto } from './chat.utils';
-import { GetUser, JwtAuthGaurd } from 'src/auth/user.auth';
+import { CreateChatDto } from '../resources/utils/chat.utils';
+import { JwtAuthGaurd } from 'src/resources/utils/user.auth';
 import { User } from '@prisma/client';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { GetUser } from 'src/resources/decorators/getUser.decorator';
 
 @WebSocketGateway()
 @UseGuards(JwtAuthGaurd)
@@ -17,7 +18,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket, ...args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
-    
+
   };
 
   handleDisconnect(client: Socket) {
