@@ -3,10 +3,10 @@ import { UserService } from './user.service';
 import { Prisma, User } from '@prisma/client';
 import { GetManyUsersInput } from '../resources/utils/user.utils';
 import { FileInterceptor } from '@nestjs/platform-express'
-import { JwtAuthGaurd } from '../resources/utils/user.auth';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { GetUser } from 'src/resources/decorators/getUser.decorator';
+import { JwtAuthGaurd } from 'src/resources/guards/rest.guard';
 
 @Controller('user')
 export class UserController {

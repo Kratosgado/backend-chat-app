@@ -52,8 +52,6 @@ export class AuthService {
 
          const payload: JwtPayload = { email: user.email }
          const accessToken = this.jwtService.sign(payload)
-
-         this.logger.log(`accessToken: ${accessToken}`);
          return accessToken
       }
       throw new UnauthorizedException();

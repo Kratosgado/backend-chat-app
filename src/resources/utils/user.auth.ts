@@ -1,14 +1,11 @@
-import { MiddlewareConsumer, ExecutionContext, Injectable, UnauthorizedException, createParamDecorator, Type } from "@nestjs/common";
+import { MiddlewareConsumer, ExecutionContext, Injectable, UnauthorizedException, createParamDecorator, Type, CanActivate, Logger } from "@nestjs/common";
 import { AuthGuard, PassportStrategy } from '@nestjs/passport'
 
-import { Strategy, ExtractJwt } from 'passport-jwt'
+import { Strategy, ExtractJwt, JwtFromRequestFunction } from 'passport-jwt'
 import { UserService } from "../../user/user.service";
 import { Socket } from "socket.io";
 import { ExtendedError } from "socket.io/dist/namespace";
 import { AuthService } from "../../auth/auth.service";
-
-@Injectable()
-export class JwtAuthGaurd extends AuthGuard('jwt') { }
 
 export interface JwtPayload {
    email: string;
@@ -16,6 +13,8 @@ export interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+   private readonly logger = new Logger(JwtStrategy.name);
+
    constructor(private readonly authService: AuthService) {
       super({
          jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -24,11 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    }
 
    async validate(payload: JwtPayload) {
-      console.log("payload", payload);
+      this.logger.log("recieved payload: " + payload);
       const user = await this.authService.validateUserByEmail(payload.email);
       if (!user) return new UnauthorizedException();
-      console.log(`validated user: ${user.id}`)
+      this.logger.log(`validated user: ${user.username}`)
       return user;
    }
 }
-
