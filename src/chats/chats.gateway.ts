@@ -4,8 +4,8 @@ import { CreateChatDto } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { GetUser } from 'src/resources/decorators/getUser.decorator';
 import { SocketGuard } from 'src/resources/guards/socket.guard';
+import { SocketUser } from 'src/resources/decorators/socketUser.decorator';
 
 @WebSocketGateway()
 @UseGuards(SocketGuard)
@@ -17,13 +17,10 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   handleConnection(client: Socket, ...args: any[]) {
-    client
     this.logger.log(`Client connected: ${client.id}`);
   };
 
   handleDisconnect(client: Socket) {
-
-
     this.logger.log(`Client disconnected: ${client.id}`);
   };
 
@@ -32,7 +29,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createChat')
   create(
     @MessageBody() createChatDto: CreateChatDto,
-    @GetUser() currentUser: User,
+    @SocketUser() currentUser: User,
   ) {
 
     return this.chatsService.createChat(createChatDto, currentUser);
@@ -40,7 +37,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('findAllChats')
   findAll(
-    @GetUser() currentUser: User,
+    @SocketUser() currentUser: User,
   ) {
     this.logger.log("finding chats of: " + currentUser.username);
     return this.chatsService.chats(currentUser);
@@ -49,7 +46,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('findOneChat')
   findOne(@MessageBody() id: string,
     @ConnectedSocket() client: Socket,
-    @GetUser() currentUser: User
+    @SocketUser() currentUser: User
   ) {
     return "finding chats"
     // return this.chatsService.chat(id, currentUser);
@@ -65,7 +62,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   remove(
     @ConnectedSocket() client: Socket,
     @MessageBody() id: string,
-    @GetUser() currentUser: User,
+    @SocketUser() currentUser: User,
   ) {
     return this.chatsService.deleteChat(id);
   }
