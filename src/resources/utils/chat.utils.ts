@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateChatDto {
-   // @IsOptional()
+   @IsOptional()
    convoName?: string;
 
    @IsString({ each: true })

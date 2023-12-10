@@ -19,8 +19,6 @@ export class SocketGuard extends AuthGuard('jwt') {
          if (client.handshake.headers.authorization) {
             const bearerToken = client.handshake.headers.authorization.split(" ")[1];
             const payload = this.jwtService.verify(bearerToken, { secret: process.env.JWTSECRET })
-            // context.switchToHttp().getRequest<Request>().headers["authorization"] = bearerToken
-
             const user = await this.validate(payload);
 
             context.switchToWs().getClient<Socket>().data.user = user;
@@ -32,7 +30,6 @@ export class SocketGuard extends AuthGuard('jwt') {
       }
    }
    async validate(payload: JwtPayload) {
-      this.logger.log("recieved payload: " + payload);
       const user = await this.authService.validateUserByEmail(payload.email);
       if (!user) throw new UnauthorizedException();
       this.logger.log(`validated user: ${user.username}`)
