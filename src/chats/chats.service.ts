@@ -114,7 +114,6 @@ export class ChatsService {
                }
             },
          });
-         this.logger.log("chats found: " + foundChats.length)
          foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).username)
          return foundChats;
       } catch (error) {

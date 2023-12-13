@@ -45,11 +45,13 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('findAllChats')
-  findAll(
+  async findAll(
     @SocketUser() currentUser: User,
   ) {
     this.logger.log("finding chats of: " + currentUser.username);
-    return this.chatsService.chats(currentUser);
+    const chats = await this.chatsService.chats(currentUser);
+    this.logger.log("chats found: " + chats.length)
+    this.server.to(currentUser.id).emit("returningChats", chats);
   }
 
   @SubscribeMessage('findOneChat')
