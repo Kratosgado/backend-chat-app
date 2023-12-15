@@ -1,6 +1,6 @@
 import { WebSocketGateway, SubscribeMessage, OnGatewayInit, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
-import { CreateChatDto } from '../resources/utils/chat.utils';
+import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
 import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
@@ -28,13 +28,13 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Client disconnected: ${client.id}`);
   };
 
-
+  // chats
   @SubscribeMessage('createChat')
-  async create(
+  async createChat(
     @MessageBody() createChatDto: CreateChatDto,
     @SocketUser() currentUser: User,
   ) {
-
+    this.logger.log("current user: " + currentUser.username);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
     createChatDto.userIds.map((id) => {
       this.server.in(id).socketsJoin(createdChat.id);
@@ -45,35 +45,40 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('findAllChats')
-  async findAll(
+  async findAllChats(
     @SocketUser() currentUser: User,
   ) {
-    this.logger.log("finding chats of: " + currentUser.username);
     const chats = await this.chatsService.chats(currentUser);
-    this.logger.log("chats found: " + chats.length)
+    this.logger.log("chats found: " + chats.length);
     this.server.to(currentUser.id).emit("returningChats", chats);
   }
 
   @SubscribeMessage('findOneChat')
-  findOne(@MessageBody() id: string,
-    @ConnectedSocket() client: Socket,
+  async findOneChat(@MessageBody() chatid: string,
     @SocketUser() currentUser: User
   ) {
-    return "finding chats"
-    // return this.chatsService.chat(id, currentUser);
+    this.logger.log(`finding chat with id: ${chatid}`);
+    const chat = await this.chatsService.chat(chatid, currentUser);
+    this.logger.log("found chat? " + Boolean(chat.id));
+    this.server.to(currentUser.id).emit("returningChat", chat);
   }
 
-  // @SubscribeMessage('updateChat')
-  // update(@MessageBody() updateChatDto: UpdateChatDto
-  // ) {
-  //   return this.chatsService.update(updateChatDto.id, updateChatDto);
-  // }
-
   @SubscribeMessage('deleteChat')
-  remove(
+  deleteChat(
     @MessageBody() id: string,
     @SocketUser() currentUser: User,
   ) {
     return this.chatsService.deleteChat(id);
+  }
+
+  // messages
+  @SubscribeMessage('sendMessage')
+  async sendMessage(
+    @MessageBody() sendMessageDto: SendMessageDto,
+    @SocketUser() currentUser: User) {
+    this.logger.log("sending message");
+    const sentMessage = await this.chatsService.sendMessage(sendMessageDto, currentUser);
+    this.logger.log("message sent");
+    this.server.to(sentMessage.chatId).emit("newMessage", sentMessage);
   }
 }

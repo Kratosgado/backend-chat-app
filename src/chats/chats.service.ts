@@ -1,7 +1,8 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma, User, Chat } from '@prisma/client';
+import { Prisma, User, Chat, Message } from '@prisma/client';
 import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class ChatsService {
@@ -41,7 +42,7 @@ export class ChatsService {
          });
          if (foundChat) {
             this.logger.warn("Chat already exist for users");
-            throw new NotAcceptableException("Chat already exist for users");
+            throw new WsException("Chat already exist for users");
          }
          this.logger.log("Creating chat...")
          const createdChat = await this.prisma.chat.create({
@@ -51,7 +52,19 @@ export class ChatsService {
                   connect: [currentUser, ...foundUsers]
                }
             },
+            include: {
+               users: {
+                  select: {
+                     id: true,
+                     email: true,
+                     username: true
+                  }
+               },
+               messages: true,
+
+            }
          });
+         this.logger.log(`chat created with id: ${createdChat.id}`);
          return createdChat;
       } catch (error) {
          throw error;
@@ -125,18 +138,17 @@ export class ChatsService {
 
    async sendMessage(sendMessageDto: SendMessageDto, currentUser: User,
       // client: Socket
-   ) {
+   ): Promise<Message> {
       try {
          const { content, chatId } = sendMessageDto;
 
          this.logger.log(`fingind chat with id: ${chatId}`);
-         this.logger.log("saving message to conversation. Message: " + content)
-         const foundChat = await this.prisma.chat.findUnique({
+         const foundChat = await this.prisma.chat.count({
             where: { id: chatId },
          });
-         if (!foundChat) throw new NotFoundException("Chat Not Found");
+         if (!foundChat) throw new WsException("Chat Not Found");
 
-
+         this.logger.log("saving message to conversation. Message: " + content)
          const message = await this.prisma.message.create({
             data: {
                content,
@@ -144,15 +156,9 @@ export class ChatsService {
                chatId: chatId
             }
          });
+         if (!message) throw new WsException("message not sent")
          this.logger.log(`message saved with content: ${message.content}`)
-         // const users = await this.prisma.chat.findUnique({
-         //    where: { id: conversationId },
-         //    include: { users: true }
-         // }).then((chat) => chat.users)
-
-
-         // this.chatGateway.server.emit("newMessage", message);
-         return `message sent: content = ${message.content}`
+         return message
       } catch (error) {
          this.logger.log(error)
          return error;
