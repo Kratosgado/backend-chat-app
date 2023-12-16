@@ -175,7 +175,28 @@ export class ChatsService {
 
    async deleteChat(id: string) {
       try {
-         await this.prisma.chat.delete({ where: { id } });
+         // find chat to be deleted and the users
+         const deletedChat = await this.prisma.chat.findUnique({
+            where: { id },
+            select: {
+               id: true,
+               users: true
+            }
+         });
+         if (!deletedChat) throw new WsException("Chat Not Found");
+         
+         const transaction = await this.prisma.$transaction([
+            this.prisma.message.deleteMany({
+               where: {
+                  chatId: id
+               }
+            }),
+            this.prisma.chat.delete({
+               where: { id }
+            }),
+         ])
+         
+         return deletedChat;
       } catch (error) {
          this.logger.error(error);
          throw error;

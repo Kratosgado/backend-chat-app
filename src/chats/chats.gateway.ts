@@ -39,7 +39,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     createChatDto.userIds.map((id) => {
       this.server.in(id).socketsJoin(createdChat.id);
       this.server.to(id).emit("chatCreated", createdChat);
-    })
+    });
     this.server.in(currentUser.id).socketsJoin(createdChat.id);
     this.server.to(currentUser.id).emit("chatCreated", createdChat);
   }
@@ -64,11 +64,15 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('deleteChat')
-  deleteChat(
+  async deleteChat(
     @MessageBody() id: string,
     @SocketUser() currentUser: User,
   ) {
-    return this.chatsService.deleteChat(id);
+    const deleteChat = await this.chatsService.deleteChat(id);
+    deleteChat.users.map((user) => {
+      this.server.in(user.id).socketsLeave(deleteChat.id);
+      this.server.to(user.id).emit("chatDeleted", deleteChat.id);
+    });
   }
 
   // messages
