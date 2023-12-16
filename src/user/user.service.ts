@@ -30,8 +30,8 @@ export class UserService {
     * @returns {Promise<User | null>} User || null
     */
 
-   async user(uniqueField: Prisma.UserFindUniqueArgs): Promise<User | null> {
-      return await this.prisma.user.findUnique(uniqueField);
+   async user(id: string): Promise<User | null> {
+      return await this.prisma.user.findUnique({where: {id}});
    }
 
    /**

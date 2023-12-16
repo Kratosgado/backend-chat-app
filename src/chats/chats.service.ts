@@ -88,11 +88,8 @@ export class ChatsService {
                   }
                },
                messages: {
-                  select: {
-                     content: true
-                  },
-                  take: 1,
-                  orderBy: { "createdAt": "desc" }
+                  
+                  orderBy: { "createdAt": "asc" }
                }
             }
          });
@@ -184,7 +181,7 @@ export class ChatsService {
             }
          });
          if (!deletedChat) throw new WsException("Chat Not Found");
-         
+
          const transaction = await this.prisma.$transaction([
             this.prisma.message.deleteMany({
                where: {

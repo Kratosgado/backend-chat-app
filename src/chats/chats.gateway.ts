@@ -6,21 +6,31 @@ import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { SocketGuard } from 'src/resources/guards/socket.guard';
 import { SocketUser } from 'src/resources/decorators/socketUser.decorator';
+import { UserService } from 'src/user/user.service';
 
 @WebSocketGateway()
 @UseGuards(SocketGuard)
 @UsePipes(new ValidationPipe())
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly chatsService: ChatsService) { }
+  constructor(
+    private readonly chatsService: ChatsService,
+    private readonly userService: UserService
+  ) { }
 
   private readonly logger = new Logger("ChatGateway")
 
   @WebSocketServer() server: Server;
 
 
-  handleConnection(client: Socket, ...args: any[]) {
-    const clientId = client.handshake.query.userId;
+  async handleConnection(client: Socket, ...args: any[]) {
+    const clientId = client.handshake.query.userId as string;
     this.server.socketsJoin(clientId);
+    await this.userService.user(clientId)
+      .then((user) => this.chatsService.chats(user)
+        .then((chats) => chats.map((chat) => this.server.in(clientId).socketsJoin(chat.id)),),
+      );
+
+
     this.logger.log(`Client connected: ${clientId}`);
   };
 

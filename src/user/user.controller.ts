@@ -18,7 +18,7 @@ export class UserController {
   }
 
   @Get('/find/:id')
-  findOne(@Param() id: Prisma.UserFindUniqueArgs) {
+  findOne(@Param() id: string) {
     return this.userService.user(id);
   }
 
