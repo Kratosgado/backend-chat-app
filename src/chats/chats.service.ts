@@ -65,6 +65,8 @@ export class ChatsService {
             }
          });
          this.logger.log(`chat created with id: ${createdChat.id}`);
+         createdChat.convoName = createdChat.users.find(user => user.id !== currentUser.id).username;
+
          return createdChat;
       } catch (error) {
          throw error;
@@ -85,7 +87,13 @@ export class ChatsService {
                      username: true
                   }
                },
-               messages: true
+               messages: {
+                  select: {
+                     content: true
+                  },
+                  take: 1,
+                  orderBy: { "createdAt": "desc" }
+               }
             }
          });
 
