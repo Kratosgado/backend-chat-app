@@ -65,11 +65,12 @@ export class ChatsService {
             }
          });
          this.logger.log(`chat created with id: ${createdChat.id}`);
-         createdChat.convoName = createdChat.users.find(user => user.id !== currentUser.id).username;
+         createdChat.convoName = createdChat.users.find(user => user.id !== currentUser.id).username ?? "me";
 
          return createdChat;
       } catch (error) {
-         throw error;
+         this.logger.error(error)
+         return error;
       }
    }
 
@@ -88,7 +89,7 @@ export class ChatsService {
                   }
                },
                messages: {
-                  
+
                   orderBy: { "createdAt": "asc" }
                }
             }
@@ -96,11 +97,11 @@ export class ChatsService {
 
          if (!foundChat) throw new NotFoundException("Chat Not Found");
 
-         foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).username;
+         foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).username ?? "Me";
          return foundChat;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 
@@ -132,11 +133,14 @@ export class ChatsService {
                }
             },
          });
-         foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).username)
+         foundChats.map((chat) => {
+            const notCurrentUser = chat.users.find((user) => user.id !== currentUser.id);
+            return chat.convoName = notCurrentUser ? notCurrentUser.username : "Me"
+         });
          return foundChats;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 
@@ -192,11 +196,11 @@ export class ChatsService {
                where: { id }
             }),
          ])
-         
+
          return deletedChat;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 }

@@ -31,7 +31,17 @@ export class UserService {
     */
 
    async user(id: string): Promise<User | null> {
-      return await this.prisma.user.findUnique({where: {id}});
+      try {
+         this.logger.log("finding user with id: " + id)
+         const foundUser = await this.prisma.user.findUnique({ where: { id } });
+         if (!foundUser) throw new NotFoundException("User Not Found");
+         delete foundUser.password;
+         delete foundUser.salt;
+         return foundUser
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
    }
 
    /**
@@ -40,25 +50,28 @@ export class UserService {
     * @returns {Promise<User[]>}
     */
    async users(getManyUsersInput: GetManyUsersInput): Promise<User[]> {
-      const { skip, take, cursor, search, userIds } = getManyUsersInput ?? {};
-      const foundUsers = await this.prisma.user.findMany({
-         where: {
-            username: { contains: search },
-            AND: {
-               id: {
-                  in: userIds
+      try {
+         const { skip, take, cursor, search, userIds } = getManyUsersInput ?? {};
+         this.logger.log("finding all users");
+         const foundUsers = await this.prisma.user.findMany({
+            where: {
+               username: { contains: search },
+               AND: {
+                  id: {
+                     in: userIds
+                  }
                }
-            }
-         },
-         // include: {
-         //    conversations: false // include conversation when we are not just interested in the users
-         // }
-      });
-      foundUsers.map(user => {
-         delete user.password,
-            delete user.salt;
-      });
-      return foundUsers
+            },
+         });
+         foundUsers.map(user => {
+            delete user.password,
+               delete user.salt;
+         });
+         return foundUsers
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
    }
 
    /**

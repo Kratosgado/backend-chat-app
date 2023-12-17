@@ -26,10 +26,9 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const clientId = client.handshake.query.userId as string;
     this.server.socketsJoin(clientId);
     await this.userService.user(clientId)
-      .then((user) => this.chatsService.chats(user)
+      .then(async (user) => await this.chatsService.chats(user)
         .then((chats) => chats.map((chat) => this.server.in(clientId).socketsJoin(chat.id)),),
       );
-
 
     this.logger.log(`Client connected: ${clientId}`);
   };
@@ -44,7 +43,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() createChatDto: CreateChatDto,
     @SocketUser() currentUser: User,
   ) {
-    this.logger.log("current user: " + currentUser.username);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
     createChatDto.userIds.map((id) => {
       this.server.in(id).socketsJoin(createdChat.id);
