@@ -121,7 +121,8 @@ export class ChatsService {
                   select: {
                      id: true,
                      email: true,
-                     username: true
+                     username: true,
+                     profilePic: true
                   }
                },
                messages: {
