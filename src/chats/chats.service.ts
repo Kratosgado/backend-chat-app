@@ -16,15 +16,18 @@ export class ChatsService {
       // users.filter(id => id !== currentUser.id);
       try {
          this.logger.log(`Finding Users with Id(s): ${[...userIds]}`);
-         const foundUsers = await this.prisma.user.findMany({
+         const foundUsersId = await this.prisma.user.findMany({
             where: {
                id: {
                   in: userIds
                }
+            },
+            select: {
+               id: true
             }
          });
 
-         if (!foundUsers || foundUsers.length === 0) {
+         if (!foundUsersId || foundUsersId.length === 0) {
             this.logger.error("No user with specified Id found");
             throw new NotFoundException("No user with specified Id found");
          }
@@ -34,22 +37,36 @@ export class ChatsService {
                users: {
                   every: {
                      id: {
-                        in: [currentUser.id, ...(foundUsers.map(user => user.id))]
-                     }
+                        in: [currentUser.id, ...(foundUsersId.map(user => user.id))]
+                     },
+
+                  }
+               }
+            },
+            select: {
+               id: true,
+               users: {
+                  select: {
+                     username: true
                   }
                }
             }
          });
+
          if (foundChat) {
             this.logger.warn("Chat already exist for users");
-            throw new WsException("Chat already exist for users");
-         }
+            return await this.chat(foundChat.id, currentUser);
+         };
+
          this.logger.log("Creating chat...")
          const createdChat = await this.prisma.chat.create({
             data: {
                convoName,
                users: {
-                  connect: [currentUser, ...foundUsers]
+                  connect: [
+                     { id: currentUser.id },
+                     ...foundUsersId
+                  ]
                }
             },
             include: {
@@ -64,8 +81,10 @@ export class ChatsService {
 
             }
          });
-         this.logger.log(`chat created with id: ${createdChat.id}`);
-         createdChat.convoName = createdChat.users.find(user => user.id !== currentUser.id).username ?? "me";
+         this.logger.log(`chat created with id: ${createdChat.id} and ${createdChat.users.length} users`);
+
+         const notCurrentUser = createdChat.users.find(user => user.id !== currentUser.id)
+         createdChat.convoName = notCurrentUser ? notCurrentUser.username : "Me";
 
          return createdChat;
       } catch (error) {
@@ -96,8 +115,8 @@ export class ChatsService {
          });
 
          if (!foundChat) throw new NotFoundException("Chat Not Found");
-
-         foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).username ?? "Me";
+         const notCurrentUser = foundChat.users.find(user => user.id !== currentUser.id)
+         foundChat.convoName = notCurrentUser ? notCurrentUser.username : "Me";
          return foundChat;
       } catch (error) {
          this.logger.error(error);
@@ -136,7 +155,7 @@ export class ChatsService {
          });
          foundChats.map((chat) => {
             const notCurrentUser = chat.users.find((user) => user.id !== currentUser.id);
-            return chat.convoName = notCurrentUser ? notCurrentUser.username : "Me"
+            chat.convoName = notCurrentUser ? notCurrentUser.username : "Me"
          });
          return foundChats;
       } catch (error) {
@@ -156,7 +175,7 @@ export class ChatsService {
          const foundChat = await this.prisma.chat.count({
             where: { id: chatId },
          });
-         if (!foundChat) throw new WsException("Chat Not Found");
+         if (!foundChat) throw new WsException({ status: 404, message: "Chat Not Found" });
 
          this.logger.log("saving message to conversation. Message: " + content)
          const message = await this.prisma.message.create({
@@ -166,7 +185,7 @@ export class ChatsService {
                chatId: chatId
             }
          });
-         if (!message) throw new WsException("message not sent")
+         if (!message) throw new WsException({ status: 500, message: "Message not Sent" });
          this.logger.log(`message saved with content: ${message.content}`)
          return message
       } catch (error) {

@@ -88,7 +88,7 @@ export class ChatService {
 
    async chats(currentUser: User): Promise<Chat[]> {
       try {
-         this.logger.log("finding all chats of " + currentUser.username);
+         // find all chats of current user
          const foundChats = await this.prisma.chat.findMany({
             where: {
                users: {

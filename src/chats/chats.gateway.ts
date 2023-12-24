@@ -43,6 +43,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() createChatDto: CreateChatDto,
     @SocketUser() currentUser: User,
   ) {
+    this.logger.log(`${currentUser.username} creating a chat`);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
     createChatDto.userIds.map((id) => {
       this.server.in(id).socketsJoin(createdChat.id);
