@@ -22,19 +22,8 @@ model User {
   posts         Post[]
   conversations Chat[]
   Message       Message[]
-  pictures      Picture[]
 }
 
-model Picture {
-  id        String   @id @default(cuid())
-  url       String
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  chatId    String
-  messageId String?  @unique()
-  Message   Message?
-}
 
 model Post {
   id        String   @id @default(cuid())
@@ -54,7 +43,6 @@ model Chat {
   updatedAt DateTime  @updatedAt
   messages  Message[]
   users     User[]
-  pictures  Picture[]
 }
 
 model Message {
@@ -62,8 +50,7 @@ model Message {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   content        String
-  picture        Picture? @relation(references: [messageId], fields: [pictureId])
-  pictureId      String?  @unique
+  picture  String?
   chat   Chat?    @relation(fields: [chatId], references: [id])
   chatId String?
   sender         User?    @relation(fields: [senderId], references: [id])

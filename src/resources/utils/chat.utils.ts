@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBase64, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateChatDto {
    @IsOptional()
@@ -17,6 +17,10 @@ export class RemoveUserInput {
 export class SendMessageDto {
    @IsNotEmpty()
    content: string;
+
+   @IsOptional()
+   @IsBase64()
+   picture?: string;
 
    @IsNotEmpty()
    chatId: string;

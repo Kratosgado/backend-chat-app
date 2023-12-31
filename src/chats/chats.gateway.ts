@@ -94,4 +94,9 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log("message sent");
     this.server.to(sentMessage.chatId).emit("newMessage", sentMessage);
   }
+
+  @SubscribeMessage("testing")
+  test(@MessageBody() data: string,) {
+    return data
+  }
 }

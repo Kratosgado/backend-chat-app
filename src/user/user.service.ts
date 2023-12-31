@@ -87,7 +87,7 @@ export class UserService {
       this.logger.log("filename: " + image.mimetype)
       // const base64 = await encodeImageToBase64(image);
       const base64 = image.buffer.toString('base64');
-      this.logger.log("file encoded: " + base64);
+      this.logger.log("file encoded");
 
       const imagePath = `/uploads/profilePics/${image.filename}`
 
@@ -95,7 +95,7 @@ export class UserService {
          where: { id: currentUser.id },
          data: { profilePic: base64 },
       });
-      return { orignalName: image.originalname, filepath: imagePath, base64: base64 };
+      return base64;
    }
 
    async readImageFromBase64(currentUser: User, res: Response) {

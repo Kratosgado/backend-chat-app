@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UseGuards, Res, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Prisma, User } from '@prisma/client';
 import { GetManyUsersInput } from '../resources/utils/user.utils';
@@ -33,7 +33,7 @@ export class UserController {
     return this.userService.updateUser(updateUserInput);
   }
 
-  @Post('updateProfilePic')
+  @Put('updateProfilePic')
   @UseGuards(JwtAuthGaurd)
   @UseInterceptors(FileInterceptor('image'),)
   updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {

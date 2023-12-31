@@ -169,7 +169,7 @@ export class ChatsService {
       // client: Socket
    ): Promise<Message> {
       try {
-         const { content, chatId } = sendMessageDto;
+         const { content, picture, chatId } = sendMessageDto;
 
          this.logger.log(`fingind chat with id: ${chatId}`);
          const foundChat = await this.prisma.chat.count({
@@ -181,6 +181,7 @@ export class ChatsService {
          const message = await this.prisma.message.create({
             data: {
                content,
+               picture,
                senderId: currentUser.id,
                chatId: chatId
             }
