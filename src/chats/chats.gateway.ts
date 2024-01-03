@@ -4,6 +4,8 @@ import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
 import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { from, map } from 'rxjs'
+
 import { SocketGuard } from 'src/resources/guards/socket.guard';
 import { SocketUser } from 'src/resources/decorators/socketUser.decorator';
 import { UserService } from 'src/user/user.service';

@@ -1,13 +1,18 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma, User, Chat } from '@prisma/client';
+import { Prisma, User, Chat, Message } from '@prisma/client';
 import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
+import { WsException } from '@nestjs/websockets';
+import { ChatGateway } from './chat.gateway';
+import { ChatsGateway } from 'src/chats/chats.gateway';
 
 @Injectable()
 export class ChatService {
-   private logger = new Logger("ChatService");
+   private logger = new Logger("ChatsService");
 
-   constructor(private readonly prisma: PrismaService,
+   constructor(
+      private readonly prisma: PrismaService,
+      private readonly chatGateway: ChatGateway
    ) { }
 
    async createChat(createChatDto: CreateChatDto, currentUser: User): Promise<Chat> {
@@ -15,15 +20,18 @@ export class ChatService {
       // users.filter(id => id !== currentUser.id);
       try {
          this.logger.log(`Finding Users with Id(s): ${[...userIds]}`);
-         const foundUsers = await this.prisma.user.findMany({
+         const foundUsersId = await this.prisma.user.findMany({
             where: {
                id: {
                   in: userIds
                }
+            },
+            select: {
+               id: true
             }
          });
 
-         if (!foundUsers || foundUsers.length === 0) {
+         if (!foundUsersId || foundUsersId.length === 0) {
             this.logger.error("No user with specified Id found");
             throw new NotFoundException("No user with specified Id found");
          }
@@ -33,28 +41,64 @@ export class ChatService {
                users: {
                   every: {
                      id: {
-                        in: [currentUser.id, ...(foundUsers.map(user => user.id))]
-                     }
+                        in: [currentUser.id, ...(foundUsersId.map(user => user.id))]
+                     },
+
+                  }
+               }
+            },
+            select: {
+               id: true,
+               users: {
+                  select: {
+                     username: true
                   }
                }
             }
          });
+
          if (foundChat) {
             this.logger.warn("Chat already exist for users");
-            throw new NotAcceptableException("Chat already exist for users");
-         }
+            return await this.chat(foundChat.id, currentUser);
+         };
+
          this.logger.log("Creating chat...")
          const createdChat = await this.prisma.chat.create({
             data: {
                convoName,
                users: {
-                  connect: [currentUser, ...foundUsers]
+                  connect: [
+                     { id: currentUser.id },
+                     ...foundUsersId
+                  ]
                }
             },
+            include: {
+               users: {
+                  select: {
+                     id: true,
+                     email: true,
+                     username: true
+                  }
+               },
+               messages: true,
+
+            }
          });
+         this.logger.log(`chat created with id: ${createdChat.id} and ${createdChat.users.length} users`);
+
+         const notCurrentUser = createdChat.users.find(user => user.id !== currentUser.id)
+         createdChat.convoName = notCurrentUser ? notCurrentUser.username : "Me";
+
+         userIds.map((id) => {
+            this.chatGateway.server.in(id).socketsJoin(createdChat.id);
+            this.chatGateway.server.to(id).emit("chatCreated", createdChat);
+         });
+         this.chatGateway.server.in(currentUser.id).socketsJoin(createdChat.id);
          return createdChat;
       } catch (error) {
-         throw error;
+         this.logger.error(error)
+         return error;
       }
    }
 
@@ -72,23 +116,26 @@ export class ChatService {
                      username: true
                   }
                },
-               messages: true
+               messages: {
+
+                  orderBy: { "createdAt": "asc" }
+               }
             }
          });
 
          if (!foundChat) throw new NotFoundException("Chat Not Found");
-
-         foundChat.convoName = foundChat.users.find(user => user.id !== currentUser.id).username;
+         const notCurrentUser = foundChat.users.find(user => user.id !== currentUser.id)
+         foundChat.convoName = notCurrentUser ? notCurrentUser.username : "Me";
          return foundChat;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 
    async chats(currentUser: User): Promise<Chat[]> {
       try {
-         // find all chats of current user
+         this.logger.log("finding all chats of " + currentUser.username);
          const foundChats = await this.prisma.chat.findMany({
             where: {
                users: {
@@ -102,7 +149,8 @@ export class ChatService {
                   select: {
                      id: true,
                      email: true,
-                     username: true
+                     username: true,
+                     profilePic: true
                   }
                },
                messages: {
@@ -114,45 +162,45 @@ export class ChatService {
                }
             },
          });
-         this.logger.log("chats found: " + foundChats.length)
-         foundChats.map((chat) => chat.convoName = chat.users.find(user => user.id !== currentUser.id).username)
+         foundChats.map((chat) => {
+            const notCurrentUser = chat.users.find((user) => user.id !== currentUser.id);
+            chat.convoName = notCurrentUser ? notCurrentUser.username : "Me"
+         });
          return foundChats;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 
 
    async sendMessage(sendMessageDto: SendMessageDto, currentUser: User,
       // client: Socket
-   ) {
+   ): Promise<Message> {
       try {
-         const { content, chatId } = sendMessageDto;
+         const { content, picture, chatId } = sendMessageDto;
 
          this.logger.log(`fingind chat with id: ${chatId}`);
-         this.logger.log("saving message to conversation. Message: " + content)
-         const foundChat = await this.prisma.chat.findUnique({
+         const foundChat = await this.prisma.chat.count({
             where: { id: chatId },
          });
-         if (!foundChat) throw new NotFoundException("Chat Not Found");
+         if (!foundChat) throw new WsException({ status: 404, message: "Chat Not Found" });
 
-
+         this.logger.log("saving message to conversation. Message: " + content)
          const message = await this.prisma.message.create({
             data: {
                content,
+               picture,
                senderId: currentUser.id,
                chatId: chatId
             }
          });
+         if (!message) throw new WsException({ status: 500, message: "Message not Sent" });
          this.logger.log(`message saved with content: ${message.content}`)
-         // const users = await this.prisma.chat.findUnique({
-         //    where: { id: conversationId },
-         //    include: { users: true }
-         // }).then((chat) => chat.users)
 
+         this.chatGateway.server.to(message.chatId).emit("newMessage", message);
 
-         return `message sent: content = ${message.content}`
+         return message
       } catch (error) {
          this.logger.log(error)
          return error;
@@ -161,10 +209,36 @@ export class ChatService {
 
    async deleteChat(id: string) {
       try {
-         await this.prisma.chat.delete({ where: { id } });
+         // find chat to be deleted and the users
+         const deletedChat = await this.prisma.chat.findUnique({
+            where: { id },
+            select: {
+               id: true,
+               users: true
+            }
+         });
+         if (!deletedChat) throw new WsException("Chat Not Found");
+
+         const transaction = await this.prisma.$transaction([
+            this.prisma.message.deleteMany({
+               where: {
+                  chatId: id
+               }
+            }),
+            this.prisma.chat.delete({
+               where: { id }
+            }),
+         ]);
+
+         deletedChat.users.map((user) => {
+            this.chatGateway.server.in(user.id).socketsLeave(deletedChat.id);
+            this.chatGateway.server.to(user.id).emit("chatDeleted", deletedChat.id);
+         });
+
+         return deletedChat;
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
    }
 }
