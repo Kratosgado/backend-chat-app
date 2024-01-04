@@ -182,6 +182,7 @@ export class ChatsService {
             data: {
                content,
                picture,
+               
                senderId: currentUser.id,
                chatId: chatId
             }

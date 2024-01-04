@@ -13,10 +13,15 @@ export class RemoveUserInput {
    userIds?: string[];
 }
 
+export enum MessageStatus {
+   SENT = "SENT",
+   DELIVERED = "DELIVERED",
+   READ = "READ"
+}
 
 export class SendMessageDto {
    @IsNotEmpty()
-   content: string;
+   text: string;
 
    @IsOptional()
    @IsBase64()

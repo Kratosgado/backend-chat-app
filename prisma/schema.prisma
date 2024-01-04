@@ -49,10 +49,19 @@ model Message {
   id             String   @id @default(cuid())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  content        String
+  text        String
   picture  String?
+  status  String?
   chat   Chat?    @relation(fields: [chatId], references: [id])
   chatId String?
   sender         User?    @relation(fields: [senderId], references: [id])
   senderId       String?
+}
+
+model SocketMessages {
+  id  String @id @default(cuid())
+  fromId String
+  toId String
+  itemId String
+  itemType String
 }

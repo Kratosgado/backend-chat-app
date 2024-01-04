@@ -72,6 +72,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const chat = await this.chatsService.chat(chatid, currentUser);
     this.logger.log("found chat? " + Boolean(chat.id));
     this.server.to(currentUser.id).emit("returningChat", chat);
+    
   }
 
   @SubscribeMessage('deleteChat')
