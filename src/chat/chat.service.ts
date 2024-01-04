@@ -1,10 +1,9 @@
 import { Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma, User, Chat, Message } from '@prisma/client';
-import { CreateChatDto, MessageStatus, SendMessageDto } from '../resources/utils/chat.utils';
+import { User, Chat, Message } from '@prisma/client';
+import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
 import { WsException } from '@nestjs/websockets';
 import { ChatGateway } from './chat.gateway';
-import { ChatsGateway } from 'src/chats/chats.gateway';
 import { Observable, from, map } from 'rxjs';
 
 @Injectable()
@@ -179,40 +178,6 @@ export class ChatService {
       }
    }
 
-
-   async sendMessage(sendMessageDto: SendMessageDto, currentUser: User,
-      // client: Socket
-   ): Promise<Message> {
-      try {
-         const { text, picture, chatId } = sendMessageDto;
-
-         this.logger.log(`fingind chat with id: ${chatId}`);
-         const foundChat = await this.prisma.chat.count({
-            where: { id: chatId },
-         });
-         if (!foundChat) throw new WsException({ status: 404, message: "Chat Not Found" });
-
-         this.logger.log("saving message to conversation. Message: " + text)
-         const message = await this.prisma.message.create({
-            data: {
-               text,
-               picture,
-               status: MessageStatus.SENT,
-               senderId: currentUser.id,
-               chatId: chatId
-            }
-         });
-         if (!message) throw new WsException({ status: 500, message: "Message not Sent" });
-         this.logger.log(`message saved with text: ${message.text}`)
-
-         this.chatGateway.server.to(message.chatId).emit("newMessage", message);
-
-         return message
-      } catch (error) {
-         this.logger.log(error)
-         return error;
-      }
-   }
 
    async deleteChat(id: string) {
       try {

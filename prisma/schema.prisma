@@ -51,7 +51,7 @@ model Message {
   updatedAt      DateTime @updatedAt
   text        String
   picture  String?
-  status  String?
+  status  MessageStatus @default(SENT)
   chat   Chat?    @relation(fields: [chatId], references: [id])
   chatId String?
   sender         User?    @relation(fields: [senderId], references: [id])
@@ -63,5 +63,11 @@ model SocketMessage {
   fromId String
   toId String
   itemId String
-  itemType String
+  message String
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  SEEN
 }

@@ -13,12 +13,6 @@ export class RemoveUserInput {
    userIds?: string[];
 }
 
-export enum MessageStatus {
-   SENT = "SENT",
-   DELIVERED = "DELIVERED",
-   READ = "READ"
-}
-
 export class SendMessageDto {
    @IsNotEmpty()
    text: string;
@@ -29,4 +23,24 @@ export class SendMessageDto {
 
    @IsNotEmpty()
    chatId: string;
+}
+
+export enum ServerMessages {
+   CREATECHAT = "createChat",
+   CHATCREATED = "chatCreated",
+
+   SENDMESSAGE = "sendMessage",
+   NEWMESSAGE = "newMessage",
+
+   FINDALLCHATS = 'findAllChats',
+   RETURNINGCHATS = "returningChats",
+
+   FINDONECHAT = "findOneChat",
+   RETURNINGCHAT = "returningchat",
+
+   DELETECHAT = "deleteChat",
+   CHATDELETED = "chatDeleted",
+
+   READY = "ready",
+   DELETESOCKETMESSAGE = "deleteSocketMessage"
 }

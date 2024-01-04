@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { User, SocketMessage } from "@prisma/client";
+import { User, SocketMessage, Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
 
 
@@ -11,11 +11,33 @@ export class SocketService {
       private readonly prisma: PrismaService,
    ) { }
 
-   async getUnsentMessages(currentUser: User) : Promise<SocketMessage[]> {
+   async addMessage(data: Prisma.SocketMessageCreateInput) {
       try {
+         await this.prisma.socketMessage.create({ data });
+         return true
+      } catch (error) {
+         this.logger.error(error);
+         return false
+      }
+   }
+
+   async getUnsentMessages(currentUser: User): Promise<SocketMessage[]> {
+      
+      try {
+         const userChatIds = await this.prisma.chat.findMany({
+            where: {
+               users: {
+                  some: {
+                     id: currentUser.id
+                  }
+               }
+            }
+         }).then(chats => chats.map(chat => chat.id));
          return await this.prisma.socketMessage.findMany({
             where: {
-               toId: currentUser.id
+               toId: {
+                  in: userChatIds
+               },
             }
          });
       } catch (error) {

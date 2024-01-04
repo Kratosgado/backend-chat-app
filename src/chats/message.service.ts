@@ -1,9 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
-import { User, Message } from "@prisma/client";
-import { ChatService } from "src/chat/chat.service";
+import { User, Message, MessageStatus } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
-import { MessageStatus, SendMessageDto } from "src/resources/utils/chat.utils";
+import { SendMessageDto } from "src/resources/utils/chat.utils";
 
 
 @Injectable()
@@ -28,13 +27,7 @@ export class MessageService{
 
          this.logger.log("saving message to conversation. Message: " + text)
          const message = await this.prisma.message.create({
-            data: {
-               text,
-               picture,
-               status: MessageStatus.SENT,
-               senderId: currentUser.id,
-               chatId: chatId
-            }
+            data: sendMessageDto
          });
          if (!message) throw new WsException({ status: 500, message: "Message not Sent" });
          this.logger.log(`message saved with text: ${message.text}`)
@@ -44,6 +37,15 @@ export class MessageService{
          return error;
       }
    };
+
+   async findMessage(id:string) {
+      try {
+         return await this.prisma.message.findUnique({ where: { id } });
+      } catch (error) {
+         this.logger.error(error);
+         return error;
+      }
+   }
 
    async changeStatus(id: string, status: MessageStatus) {
       try {
