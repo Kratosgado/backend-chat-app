@@ -58,7 +58,7 @@ model Message {
   senderId       String?
 }
 
-model SocketMessages {
+model SocketMessage {
   id  String @id @default(cuid())
   fromId String
   toId String

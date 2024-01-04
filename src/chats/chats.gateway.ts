@@ -2,13 +2,15 @@ import { WebSocketGateway, SubscribeMessage, OnGatewayInit, MessageBody, Connect
 import { ChatsService } from './chats.service';
 import { CreateChatDto, SendMessageDto } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
-import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { from, map } from 'rxjs'
 
 import { SocketGuard } from 'src/resources/guards/socket.guard';
 import { SocketUser } from 'src/resources/decorators/socketUser.decorator';
 import { UserService } from 'src/user/user.service';
+import { MessageService } from './message.service';
+import { SocketService } from './socket.service';
 
 @WebSocketGateway()
 @UseGuards(SocketGuard)
@@ -16,7 +18,9 @@ import { UserService } from 'src/user/user.service';
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly chatsService: ChatsService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly messageService: MessageService,
+    private readonly socketService: SocketService
   ) { }
 
   private readonly logger = new Logger("ChatGateway")
@@ -30,7 +34,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.userService.user(clientId)
       .then(async (user) => await this.chatsService.chats(user)
         .then((chats) => chats.map((chat) => this.server.in(clientId).socketsJoin(chat.id)),),
-      );
+    );
 
     this.logger.log(`Client connected: ${clientId}`);
   };
@@ -93,7 +97,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() sendMessageDto: SendMessageDto,
     @SocketUser() currentUser: User) {
     this.logger.log("sending message");
-    const sentMessage = await this.chatsService.sendMessage(sendMessageDto, currentUser);
+    const sentMessage = await this.messageService.sendMessage(sendMessageDto, currentUser);
     this.logger.log("message sent");
     this.server.to(sentMessage.chatId).emit("newMessage", sentMessage);
   }
@@ -101,5 +105,9 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage("testing")
   test(@MessageBody() data: string,) {
     return data
+  }
+
+  @SubscribeMessage("messageReceived")
+  userReady(@SocketUser() currentUser: User, @MessageBody() id) {
   }
 }
