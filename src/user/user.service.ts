@@ -98,31 +98,6 @@ export class UserService {
       return base64;
    }
 
-   async readImageFromBase64(currentUser: User, res: Response) {
-      try {
-         const base64 = await this.prisma.user.findUnique({
-            where: {
-               id: currentUser.id
-            }
-         }).then(user => user.profilePic);
-         if (!base64) {
-            throw new NotFoundException()
-         }
-
-         const base64Image = base64.split(';base64,').pop();
-         const imageBuffer = Buffer.from(base64Image, 'base64');
-
-         res.writeHead(200, {
-            "Content-Type": 'image/png',
-            'Content-Length': imageBuffer.length
-         });
-         return res.end(imageBuffer);
-
-      } catch (error) {
-         throw error
-      }
-   }
-
    async getProfilePicture(currentUser: User) {
       const base64 = await this.prisma.user.findUnique({
          where: {

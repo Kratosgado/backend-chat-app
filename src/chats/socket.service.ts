@@ -22,7 +22,7 @@ export class SocketService {
    }
 
    async getUnsentMessages(currentUser: User): Promise<SocketMessage[]> {
-      
+
       try {
          const userChatIds = await this.prisma.chat.findMany({
             where: {
@@ -36,8 +36,9 @@ export class SocketService {
          return await this.prisma.socketMessage.findMany({
             where: {
                toId: {
-                  in: userChatIds
+                  in: [currentUser.id, ...userChatIds]
                },
+
             }
          });
       } catch (error) {
@@ -49,7 +50,7 @@ export class SocketService {
    async deleteSentMessage(id: string) {
       try {
          await this.prisma.socketMessage.delete({
-            where: {id}
+            where: { id }
          })
 
       } catch (error) {

@@ -60,7 +60,6 @@ model Message {
 
 model SocketMessage {
   id  String @id @default(cuid())
-  fromId String
   toId String
   itemId String
   message String

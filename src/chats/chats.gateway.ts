@@ -1,4 +1,4 @@
-import { WebSocketGateway, SubscribeMessage, OnGatewayInit, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, OnGatewayInit, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, WsException } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
 import { CreateChatDto, SendMessageDto, ServerMessages } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
@@ -34,7 +34,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.userService.user(clientId)
       .then(async (user) => await this.chatsService.chats(user)
         .then((chats) => chats.map((chat) => this.server.in(clientId).socketsJoin(chat.id)),),
-    );
+      );
 
     this.logger.log(`Client connected: ${clientId}`);
   };
@@ -51,7 +51,13 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     this.logger.log(`${currentUser.username} creating a chat`);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
-    createChatDto.userIds.map((id) => {
+    createChatDto.userIds.map(async (id) => {
+      await this.socketService.addMessage({
+        toId: id,
+        itemId: createdChat.id,
+        message: ServerMessages.CHATCREATED,
+
+      })
       this.server.in(id).socketsJoin(createdChat.id);
       this.server.to(id).emit(ServerMessages.CHATCREATED, createdChat);
     });
@@ -76,7 +82,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const chat = await this.chatsService.chat(chatid, currentUser);
     this.logger.log("found chat? " + Boolean(chat.id));
     this.server.to(currentUser.id).emit(ServerMessages.RETURNINGCHAT, chat);
-    
+
   }
 
   @SubscribeMessage(ServerMessages.DELETECHAT)
@@ -85,10 +91,17 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SocketUser() currentUser: User,
   ) {
     const deleteChat = await this.chatsService.deleteChat(id);
-    deleteChat.users.map((user) => {
-      this.server.in(user.id).socketsLeave(deleteChat.id);
-      this.server.to(user.id).emit(ServerMessages.CHATDELETED, deleteChat.id);
-    });
+    if (!(deleteChat instanceof WsException)) {
+      deleteChat.users.map(async (user: User) => {
+        await this.socketService.addMessage({
+          itemId: deleteChat.id,
+          message: ServerMessages.CHATDELETED,
+          toId: user.id
+        })
+        this.server.in(user.id).socketsLeave(deleteChat.id);
+        this.server.to(user.id).emit(ServerMessages.CHATDELETED, deleteChat.id);
+      });
+    }
   }
 
   // messages
@@ -100,7 +113,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sentMessage = await this.messageService.sendMessage(sendMessageDto, currentUser);
     this.logger.log("message sent");
     await this.socketService.addMessage({
-      fromId: currentUser.id,
       itemId: sentMessage.id,
       toId: sentMessage.chatId,
       message: ServerMessages.NEWMESSAGE

@@ -164,13 +164,12 @@ export class ChatsService {
       }
    }
 
-   async deleteChat(id: string) {
+   async deleteChat(id: string){
       try {
          // find chat to be deleted and the users
          const deletedChat = await this.prisma.chat.findUnique({
             where: { id },
-            select: {
-               id: true,
+            include: {
                users: true
             }
          });
