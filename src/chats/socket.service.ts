@@ -14,6 +14,7 @@ export class SocketService {
    async addMessage(data: Prisma.SocketMessageCreateInput) {
       try {
          await this.prisma.socketMessage.create({ data });
+         this.logger.log("socket message added");
          return true
       } catch (error) {
          this.logger.error(error);
@@ -33,6 +34,8 @@ export class SocketService {
                }
             }
          }).then(chats => chats.map(chat => chat.id));
+
+         this.logger.log("retrieving unsent messages");
          return await this.prisma.socketMessage.findMany({
             where: {
                toId: {
@@ -52,7 +55,7 @@ export class SocketService {
          await this.prisma.socketMessage.delete({
             where: { id }
          })
-
+         this.logger.log("socket message deleted")
       } catch (error) {
          this.logger.error(error);
          return error;

@@ -43,8 +43,8 @@ export class ChatController {
     this.chatService.deleteChat(id);
   }
 
-  @Post('sendMessage')
-  sendMessage(@Body() sendMessageDto: SendMessageDto, @GetUser() currentUser) {
-    this.chatService.sendMessage(sendMessageDto, currentUser);
-  }
+  // @Post('sendMessage')
+  // sendMessage(@Body() sendMessageDto: SendMessageDto, @GetUser() currentUser) {
+  //   this.chatService.sendMessage(sendMessageDto, currentUser);
+  // }
 }

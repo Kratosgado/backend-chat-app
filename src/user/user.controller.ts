@@ -40,12 +40,12 @@ export class UserController {
     return this.userService.updateProfilePicture(image, currentUser)
   }
 
-  @Get('getProfilePic')
-  @UseGuards(JwtAuthGaurd)
-  // @Header('Content-Type', 'application/json')
-  getProfilePicture(@GetUser() currentUser: User, @Res() res: Response) {
-    return this.userService.readImageFromBase64(currentUser, res);
-  }
+  // @Get('getProfilePic')
+  // @UseGuards(JwtAuthGaurd)
+  // // @Header('Content-Type', 'application/json')
+  // getProfilePicture(@GetUser() currentUser: User, @Res() res: Response) {
+  //   return this.userService.readImageFromBase64(currentUser, res);
+  // }
 
   @Delete('/delete/:id')
   removeUser(@Param() id: Prisma.UserFindUniqueArgs) {

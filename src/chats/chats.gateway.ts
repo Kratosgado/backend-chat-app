@@ -1,10 +1,9 @@
-import { WebSocketGateway, SubscribeMessage, OnGatewayInit, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, WsException } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, WsException } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
 import { CreateChatDto, SendMessageDto, ServerMessages } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
-import { Body, Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { from, map } from 'rxjs'
 
 import { SocketGuard } from 'src/resources/guards/socket.guard';
 import { SocketUser } from 'src/resources/decorators/socketUser.decorator';
@@ -133,6 +132,10 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         case ServerMessages.CHATCREATED:
           const chat = await this.chatsService.chat(unsent.itemId, currentUser);
           this.server.to(unsent.toId).emit(unsent.message, chat);
+          break;
+        case ServerMessages.CHATDELETED:
+          this.server.to(unsent.toId).emit(unsent.message, unsent.itemId);
+          break;
         default:
           break;
       }
