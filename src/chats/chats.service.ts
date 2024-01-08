@@ -29,7 +29,7 @@ export class ChatsService {
 
          if (!foundUsersId || foundUsersId.length === 0) {
             this.logger.error("No user with specified Id found");
-            throw new NotFoundException("No user with specified Id found");
+            throw new WsException("No user with specified Id found");
          }
          // check if chat already exists
          const foundChat = await this.prisma.chat.findFirst({
@@ -89,7 +89,7 @@ export class ChatsService {
          return createdChat;
       } catch (error) {
          this.logger.error(error)
-         return error;
+         throw error;
       }
    }
 
@@ -114,13 +114,13 @@ export class ChatsService {
             }
          });
 
-         if (!foundChat) throw new NotFoundException("Chat Not Found");
+         if (!foundChat) throw new WsException("Chat Not Found");
          const notCurrentUser = foundChat.users.find(user => user.id !== currentUser.id)
          foundChat.convoName = notCurrentUser ? notCurrentUser.username : "Me";
          return foundChat;
       } catch (error) {
          this.logger.error(error);
-         return error;
+         throw error;
       }
    }
 
@@ -160,7 +160,7 @@ export class ChatsService {
          return foundChats;
       } catch (error) {
          this.logger.error(error);
-         return error;
+         throw error;
       }
    }
 
@@ -189,7 +189,7 @@ export class ChatsService {
          return deletedChat;
       } catch (error) {
          this.logger.error(error);
-         return error;
+         throw error;
       }
    }
 }

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt'
 import { PrismaService } from 'src/prisma.service';
@@ -39,22 +39,26 @@ export class AuthService {
 
 
    async login(signInInput: SignInDto): Promise<string> {
-      const { email, password } = signInInput;
-      // find user with provided email
-      this.logger.log(`Finding with email: ${email}`)
-      const user = await this.prisma.user.findUnique({
-         where: { email }
-      });
-      this.logger.log(`foundUser: ${user.username}`)
+      try {
+         const { email, password } = signInInput;
+         // find user with provided email
+         this.logger.log(`Finding with email: ${email}`)
+         const user = await this.prisma.user.findUnique({
+            where: { email }
+         });
 
-      if (user && await this.validatePassword(password, user)) {
-         this.logger.log(`foundUser: ${user}`)
+         if (user && await this.validatePassword(password, user)) {
+            this.logger.log(`foundUser: ${user}`)
 
-         const payload: JwtPayload = { email: user.email }
-         const accessToken = this.jwtService.sign(payload)
-         return accessToken
+            const payload: JwtPayload = { email: user.email }
+            const accessToken = this.jwtService.sign(payload)
+            return accessToken
+         }
+         throw new NotFoundException("User not registered");
+      } catch (error) {
+         this.logger.error(error);
+         throw error;
       }
-      throw new UnauthorizedException();
       // const username = await this.validateUserPassword(signInInput);
    }
 
