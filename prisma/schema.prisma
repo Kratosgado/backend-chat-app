@@ -24,7 +24,6 @@ model User {
   Message       Message[]
 }
 
-
 model Post {
   id        String   @id @default(cuid())
   title     String
@@ -46,22 +45,22 @@ model Chat {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  text        String
-  picture  String?
-  status  MessageStatus @default(SENT)
-  chat   Chat?    @relation(fields: [chatId], references: [id])
-  chatId String?
-  sender         User?    @relation(fields: [senderId], references: [id])
-  senderId       String?
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  text      String
+  picture   String?
+  status    MessageStatus @default(SENT)
+  chat      Chat?         @relation(fields: [chatId], references: [id])
+  chatId    String?
+  sender    User?         @relation(fields: [senderId], references: [id])
+  senderId  String?
 }
 
 model SocketMessage {
-  id  String @id @default(cuid())
-  toId String
-  itemId String
+  id      String @id @default(cuid())
+  toId    String
+  itemId  String
   message String
 }
 

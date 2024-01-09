@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt'
 import { PrismaService } from 'src/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/resources/utils/auth.strategy';
 import { SignInDto, SignUpDto } from '../resources/utils/auth.utils';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +33,10 @@ export class AuthService {
 
          return createdUser
       } catch (error) {
+         if (error instanceof PrismaClientKnownRequestError) {
+            this.logger.warn("User already registered" + error.code)
+            throw new ConflictException("User already registered");
+         }
          this.logger.error(error, error.stack);
          throw new InternalServerErrorException();
       }

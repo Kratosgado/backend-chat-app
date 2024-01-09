@@ -14,6 +14,9 @@ export class RemoveUserInput {
 }
 
 export class SendMessageDto {
+   @IsString()
+   id: string;
+
    @IsNotEmpty()
    text: string;
 
