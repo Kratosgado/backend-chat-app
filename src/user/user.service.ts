@@ -1,9 +1,10 @@
 import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { GetManyUsersInput } from '../resources/utils/user.utils';
+import { GetManyUsersInput, UpdateUserInput } from '../resources/utils/user.utils';
 import { createReadStream, existsSync } from 'fs';
 import { Response } from 'express';
+import { throwError } from 'rxjs';
 
 
 @Injectable()
@@ -19,9 +20,20 @@ export class UserService {
     * @param updateUser update user arguments
     * @returns {Promise<User>}
     */
-   async updateUser(updateUserInput: Prisma.UserUpdateArgs): Promise<User> {
+   async updateUser(updateUserInput: UpdateUserInput): Promise<User> {
 
-      return await this.prisma.user.update(updateUserInput);
+      try {
+         const updatedUser =  await this.prisma.user.update({
+            where: { id: updateUserInput.id },
+            data: updateUserInput
+         });
+         delete updatedUser.password;
+         delete updatedUser.salt;
+         return updatedUser;
+      } catch (error) {
+         this.logger.error(error);
+         throw (error);
+      }
    }
 
    /**

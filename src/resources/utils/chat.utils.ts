@@ -39,7 +39,7 @@ export enum ServerMessages {
    RETURNINGCHATS = "returningChats",
 
    FINDONECHAT = "findOneChat",
-   RETURNINGCHAT = "returningchat",
+   RETURNINGCHAT = "returningChat",
 
    DELETECHAT = "deleteChat",
    CHATDELETED = "chatDeleted",

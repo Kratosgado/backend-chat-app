@@ -108,7 +108,6 @@ export class ChatsService {
                   }
                },
                messages: {
-
                   orderBy: { "createdAt": "asc" }
                }
             }
