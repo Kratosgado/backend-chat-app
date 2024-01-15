@@ -1,5 +1,5 @@
 import { Chat, Prisma, User as UserModel } from "@prisma/client";
-import { IsBase64, IsEmail, IsString, IsStrongPassword, MaxLength, MinLength, ValidationArguments, ValidationOptions, registerDecorator } from "class-validator";
+import { IsBase64, IsEmail, IsOptional, IsString, IsStrongPassword, MaxLength, MinLength, ValidationArguments, ValidationOptions, registerDecorator } from "class-validator";
 import * as bcrypt from "bcrypt";
 import { PartialType } from '@nestjs/mapped-types'
 import { BadRequestException } from "@nestjs/common";
@@ -17,12 +17,16 @@ export class UpdateUserInput {
   /// id of the user
   id: string;
   @IsEmail()
+  @IsOptional()
   email?: string;
   @IsBase64()
+  @IsOptional()
   profilePic?: string;
   @MinLength(4)
+  @IsOptional()
   username?: string;
   @IsStrongPassword()
+  @IsOptional()
   password?: string;
 
 }

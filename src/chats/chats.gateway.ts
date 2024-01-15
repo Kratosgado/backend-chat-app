@@ -51,12 +51,12 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`${currentUser.username} creating a chat`);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
     createChatDto.userIds.map(async (id) => {
-      await this.socketService.addMessage({
-        toId: id,
-        itemId: createdChat.id,
-        message: ServerMessages.CHATCREATED,
+      // await this.socketService.addMessage({
+      //   toId: id,
+      //   itemId: createdChat.id,
+      //   message: ServerMessages.CHATCREATED,
 
-      })
+      // })
       this.server.in(id).socketsJoin(createdChat.id);
       this.server.to(id).emit(ServerMessages.CHATCREATED, createdChat);
     });
@@ -92,11 +92,11 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const deleteChat = await this.chatsService.deleteChat(id);
     if (!(deleteChat instanceof WsException)) {
       deleteChat.users.map(async (user: User) => {
-        await this.socketService.addMessage({
-          itemId: deleteChat.id,
-          message: ServerMessages.CHATDELETED,
-          toId: user.id
-        })
+        // await this.socketService.addMessage({
+        //   itemId: deleteChat.id,
+        //   message: ServerMessages.CHATDELETED,
+        //   toId: user.id
+        // })
         this.server.in(user.id).socketsLeave(deleteChat.id);
         this.server.to(user.id).emit(ServerMessages.CHATDELETED, deleteChat.id);
       });
@@ -111,40 +111,48 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log("sending message");
     const sentMessage = await this.messageService.sendMessage(sendMessageDto, currentUser);
     this.logger.log("message sent");
-    await this.socketService.addMessage({
-      itemId: sentMessage.id,
-      toId: sentMessage.chatId,
-      message: ServerMessages.NEWMESSAGE
-    });
+    // await this.socketService.addMessage({
+    //   itemId: sentMessage.id,
+    //   toId: sentMessage.chatId,
+    //   message: ServerMessages.NEWMESSAGE
+    // });
     this.server.to(sentMessage.chatId).emit(ServerMessages.NEWMESSAGE, sentMessage);
   }
 
-  // socket message
-  @SubscribeMessage(ServerMessages.READY)
-  async userReady(@SocketUser() currentUser: User) {
-    const unsentMessages = await this.socketService.getUnsentMessages(currentUser);
-    unsentMessages.map(async (unsent) => {
-      switch (unsent.message) {
-        case ServerMessages.NEWMESSAGE:
-          const message = await this.messageService.findMessage(unsent.itemId)
-          this.server.to(unsent.toId).emit(unsent.message, message);
-          break;
-        case ServerMessages.CHATCREATED:
-          const chat = await this.chatsService.chat(unsent.itemId, currentUser);
-          this.server.to(unsent.toId).emit(unsent.message, chat);
-          break;
-        case ServerMessages.CHATDELETED:
-          this.server.to(unsent.toId).emit(unsent.message, unsent.itemId);
-          break;
-        default:
-          break;
-      }
-    })
-
+  @SubscribeMessage(ServerMessages.DELETEMESSAGE)
+  async deleteMessage(@MessageBody() id: string, @SocketUser() currentUser: User) {
+    const chatId = await this.messageService.deleteMessage(id);
+    if (chatId) {
+      this.server.to(chatId).emit(ServerMessages.CHATDELETED, { chatId, id });
+    }
   }
 
-  @SubscribeMessage(ServerMessages.DELETESOCKETMESSAGE)
-  async deleteSocketMessage(@SocketUser() currentUser: User, @MessageBody() id) {
-    await this.socketService.deleteSentMessage(id);
-  }
+  // // socket message
+  // @SubscribeMessage(ServerMessages.READY)
+  // async userReady(@SocketUser() currentUser: User) {
+  //   const unsentMessages = await this.socketService.getUnsentMessages(currentUser);
+  //   unsentMessages.map(async (unsent) => {
+  //     switch (unsent.message) {
+  //       case ServerMessages.NEWMESSAGE:
+  //         const message = await this.messageService.findMessage(unsent.itemId)
+  //         this.server.to(unsent.toId).emit(unsent.message, message);
+  //         break;
+  //       case ServerMessages.CHATCREATED:
+  //         const chat = await this.chatsService.chat(unsent.itemId, currentUser);
+  //         this.server.to(unsent.toId).emit(unsent.message, chat);
+  //         break;
+  //       case ServerMessages.CHATDELETED:
+  //         this.server.to(unsent.toId).emit(unsent.message, unsent.itemId);
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   })
+
+  // }
+
+  // @SubscribeMessage(ServerMessages.DELETESOCKETMESSAGE)
+  // async deleteSocketMessage(@SocketUser() currentUser: User, @MessageBody() id) {
+  //   await this.socketService.deleteSentMessage(id);
+  // }
 }

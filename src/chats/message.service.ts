@@ -67,7 +67,7 @@ export class MessageService {
          const deletedMessage = await this.prisma.message.delete({
             where: { id }
          });
-         return true
+         return deletedMessage.chatId
       } catch (error) {
          this.logger.error(error);
          return false;

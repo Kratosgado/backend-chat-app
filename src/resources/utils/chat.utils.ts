@@ -34,6 +34,8 @@ export enum ServerMessages {
 
    SENDMESSAGE = "sendMessage",
    NEWMESSAGE = "newMessage",
+   DELETEMESSAGE = "deleteMessage",
+   MESSAGEDELETED = 'messageDeleted',
 
    FINDALLCHATS = 'findAllChats',
    RETURNINGCHATS = "returningChats",
