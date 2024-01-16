@@ -1,6 +1,6 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, WsException } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
-import { CreateChatDto, SendMessageDto, ServerMessages } from '../resources/utils/chat.utils';
+import { CreateChatDto, SendMessageDto, ServerMessages, UpdateMessageDto } from '../resources/utils/chat.utils';
 import { User } from '@prisma/client';
 import { Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
@@ -48,7 +48,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() createChatDto: CreateChatDto,
     @SocketUser() currentUser: User,
   ) {
-    this.logger.log(`${currentUser.username} creating a chat`);
     const createdChat = await this.chatsService.createChat(createChatDto, currentUser);
     createChatDto.userIds.map(async (id) => {
       // await this.socketService.addMessage({
@@ -69,7 +68,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SocketUser() currentUser: User,
   ) {
     const chats = await this.chatsService.chats(currentUser);
-    this.logger.log("chats found: " + chats.length);
     this.server.to(currentUser.id).emit(ServerMessages.RETURNINGCHATS, chats);
   }
 
@@ -77,9 +75,7 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async findOneChat(@MessageBody() chatid: string,
     @SocketUser() currentUser: User
   ) {
-    this.logger.log(`finding chat with id: ${chatid}`);
     const chat = await this.chatsService.chat(chatid, currentUser);
-    this.logger.log("found chat? " + Boolean(chat.id));
     this.server.to(currentUser.id).emit(ServerMessages.RETURNINGCHAT, chat);
 
   }
@@ -108,15 +104,19 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async sendMessage(
     @MessageBody() sendMessageDto: SendMessageDto,
     @SocketUser() currentUser: User) {
-    this.logger.log("sending message");
     const sentMessage = await this.messageService.sendMessage(sendMessageDto, currentUser);
-    this.logger.log("message sent");
     // await this.socketService.addMessage({
     //   itemId: sentMessage.id,
     //   toId: sentMessage.chatId,
     //   message: ServerMessages.NEWMESSAGE
     // });
     this.server.to(sentMessage.chatId).emit(ServerMessages.NEWMESSAGE, sentMessage);
+  }
+
+  @SubscribeMessage(ServerMessages.UPDATEMESSAGE)
+  async updateMessage(@MessageBody() updateMesageDto: UpdateMessageDto) {
+    const updatedMessage = await this.messageService.updateMessage(updateMesageDto);
+    this.server.to(updatedMessage.chatId).emit(ServerMessages.MESSAGEUPDATED, updatedMessage);
   }
 
   @SubscribeMessage(ServerMessages.DELETEMESSAGE)

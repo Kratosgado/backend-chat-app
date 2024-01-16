@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
 import { User, Message, MessageStatus } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
-import { SendMessageDto } from "src/resources/utils/chat.utils";
+import { SendMessageDto, UpdateMessageDto } from "src/resources/utils/chat.utils";
 
 
 @Injectable()
@@ -43,22 +43,21 @@ export class MessageService {
          return await this.prisma.message.findUnique({ where: { id } });
       } catch (error) {
          this.logger.error(error);
-         return error;
+         throw error;
       }
    }
 
-   async changeStatus(id: string, status: MessageStatus) {
+   async updateMessage(updateMesageDto: UpdateMessageDto) {
       try {
-         await this.prisma.message.update({
-            where: { id },
-            data: {
-               status
-            }
+         this.logger.log("updating message")
+         const updatedMessage = await this.prisma.message.update({
+            where: { id: updateMesageDto.id, chatId: updateMesageDto.chatId },
+            data: updateMesageDto
          });
-         return true;
+         return updatedMessage;
       } catch (error) {
          this.logger.error(error);
-         return false;
+         throw error;
       }
    };
 
@@ -70,7 +69,7 @@ export class MessageService {
          return deletedMessage.chatId
       } catch (error) {
          this.logger.error(error);
-         return false;
+         throw false;
       }
    }
 }
