@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build web assets
-        run: npm run gen && npm run mig:dev && npm run build
+        run: npm run gen && npm run mig:deploy && npm run build
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:

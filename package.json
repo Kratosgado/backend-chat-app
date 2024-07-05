@@ -21,6 +21,7 @@
     "gen": "prisma generate",
     "mig:dev": "prisma migrate dev",
     "mig:reset": "prisma migrate reset",
+    "mig:deploy": "prisma migrate deploy",
     "prisma:f": "prisma format"
   },
   "dependencies": {
