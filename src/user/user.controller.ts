@@ -12,6 +12,11 @@ import { JwtAuthGaurd } from 'src/resources/guards/rest.guard';
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
+  @Get("/")
+  async hello() {
+    return "Hello World"
+  }
+
   @Get("/findall")
   findAll(@Body() getManyUsersInput?: GetManyUsersInput) {
     return this.userService.users(getManyUsersInput);
