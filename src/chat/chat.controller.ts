@@ -1,4 +1,3 @@
-import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { ChatService } from './chat.service';
 
 import { Prisma, User } from '@prisma/client';
