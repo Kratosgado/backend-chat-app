@@ -1,26 +1,44 @@
-FROM node:20-slim AS base
+FROM node:18-alpine AS development
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="${PNPM_HOME}:$PATH"
-RUN corepack enable
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chatbackend
+ENV JWTSECRET=lkdsjfllfjj29u40927497yq2hundhjofds98807458fdshg4875802efgdxgfg846d49v84dsg676
 
-COPY . /app
 WORKDIR /app
-ENV NODE_ENV=production
 
-FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+COPY package.json yarn.lock ./
 
-FROM base as build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN yarn install --frozen-lockfile
 
-FROM base
-COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/dist /app/dist
+COPY . .
 
-EXPOSE 4000
+RUN yarn prisma generate
 
-RUN chown -R node /app
-USER node
-CMD ["pnpm", "start"]
+###########################
+# Build for production
+###########################
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+
+COPY --from=development /app/node_modules ./node_modules
+
+COPY . .
+
+RUN yarn run build
+
+RUN yarn install --frozen-lockfile --only=production && yarn cache clean --force
+
+############################
+# Production
+###########################
+FROM node:18-alpine AS production
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+
+EXPOSE 3000
+
+CMD [ "node", "dist/main.js"]

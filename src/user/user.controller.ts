@@ -30,6 +30,8 @@ export class UserController {
   @Get('/me')
   @UseGuards(JwtAuthGaurd)
   me(@GetUser() currentUser: User) {
+    delete currentUser.password;
+    delete currentUser.salt;
     return currentUser;
   }
 

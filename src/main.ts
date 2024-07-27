@@ -17,9 +17,10 @@ async function bootstrap() {
   app.enableCors()
   app.get(PrismaService);
   app.enableShutdownHooks()
+  const port = process.env.PORT || 4000;
 
-  await app.listen(4000);
+  await app.listen(port);
 
-  logger.log(`Application listening on port: 4000`)
+  logger.log(`Application listening on port: ${port}`);
 }
 bootstrap();

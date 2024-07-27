@@ -12,7 +12,8 @@ export class UserService {
    private logger = new Logger("UserService");
    constructor(
       private readonly prisma: PrismaService,
-   ) { }
+   ) { 
+   }
 
 
    /**

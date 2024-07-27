@@ -33,12 +33,12 @@ export class AuthService {
 
          return createdUser
       } catch (error) {
-         if (error instanceof PrismaClientKnownRequestError) {
-            this.logger.warn("User already registered" + error.code)
-            throw new ConflictException("User already registered");
-         }
+         // if (error instanceof PrismaClientKnownRequestError) {
+         //    this.logger.warn("User already registered" + error.code)
+         //    throw new ConflictException("User already registered");
+         // }
          this.logger.error(error, error.stack);
-         throw new InternalServerErrorException();
+         throw error;
       }
    }
 

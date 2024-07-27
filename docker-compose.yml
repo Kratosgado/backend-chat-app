@@ -1,12 +1,37 @@
 version: '3.4'
 
 services:
-  demochatapp:
-    image: demochatapp
-    build:
+  app:
+    build: 
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile 
+      target: development
+    container_name: chatbackend
+    # image: node:18.18.2-slim
     environment:
-      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chatbackend
+      JWTSECRET: lkdsjfllfjj29u40927497yq2hundhjofds98807458fdshg4875802efgdxgfg846d49v84dsg676
+
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: yarn run start:dev 
     ports:
-      - 4000:4000
+      - 127.0.0.1:3000:3000
+    depends_on:
+      - postgres
+
+  # postgres definitions
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: chatbackend
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - chatbackend:/var/lib/postgresql/data
+
+volumes:
+  chatbackend:
