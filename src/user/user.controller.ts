@@ -7,6 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { GetUser } from 'src/resources/decorators/getUser.decorator';
 import { JwtAuthGaurd } from 'src/resources/guards/rest.guard';
+import "multer";
 
 @Controller('user')
 export class UserController {
@@ -14,7 +15,7 @@ export class UserController {
 
   @Get("/")
   async hello() {
-    return "Hello World"
+    return "Hello Mbeah"
   }
 
   @Get("/findall")
@@ -40,12 +41,12 @@ export class UserController {
     return this.userService.updateUser(updateUserInput);
   }
 
-  // @Put('updateProfilePic')
-  // @UseGuards(JwtAuthGaurd)
-  // @UseInterceptors(FileInterceptor('image'),)
-  // updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {
-  //   return this.userService.updateProfilePicture(image, currentUser)
-  // }
+  @Put('updateProfilePic')
+  @UseGuards(JwtAuthGaurd)
+  @UseInterceptors(FileInterceptor('image'),)
+  updateProfile(@UploadedFile() image: Express.Multer.File, @GetUser() currentUser: User) {
+    return this.userService.updateProfilePicture(image, currentUser)
+  }
 
   // @Get('getProfilePic')
   // @UseGuards(JwtAuthGaurd)

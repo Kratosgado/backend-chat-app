@@ -62,7 +62,7 @@ export class AuthService {
          throw new NotFoundException("User not registered");
       } catch (error) {
          this.logger.error(error);
-         throw error;
+         return error;
       }
       // const username = await this.validateUserPassword(signInInput);
    }
