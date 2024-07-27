@@ -10,10 +10,13 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
-
+# Install bcrypt dependencies and rebuild bcrypt
 COPY . .
 
-RUN yarn prisma generate
+RUN yarn remove bcrypt
+RUN yarn add bcrypt
+
+RUN yarn run gen
 
 ###########################
 # Build for production
@@ -28,16 +31,16 @@ COPY --from=development /app/node_modules ./node_modules
 
 COPY . .
 
-RUN yarn run build
-
 RUN yarn install --frozen-lockfile --only=production && yarn cache clean --force
+RUN yarn build
 
 ############################
 # Production
 ###########################
 FROM node:18-alpine AS production
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
+WORKDIR /app
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/dist /app/dist
 
 EXPOSE 3000
 

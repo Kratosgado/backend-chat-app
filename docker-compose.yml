@@ -16,7 +16,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: yarn run start:dev 
+    command: yarn run dev
     ports:
       - 127.0.0.1:3000:3000
     depends_on:
