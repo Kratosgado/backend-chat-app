@@ -2,12 +2,13 @@ services:
   app:
     build: 
       context: .
-      dockerfile: Dockerfile 
+      dockerfile: ./Dockerfile 
       target: development
     container_name: chatbackend
+    restart: always
     environment:
       PORT: 4000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chatbackend
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chatbackend?schema=public
       JWTSECRET: lkdsjfllfjj29u40927497yq2hundhjofds98807458fdshg4875802efgdxgfg846d49v84dsg676
 
     working_dir: /app
